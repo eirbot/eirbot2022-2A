@@ -19,77 +19,70 @@ void Table::fill()
         {
             int val = 0;
             // Gauche
-            if (i < 10.2 && j > 117.5 && j < 132.5)
+            if (i <= 10 && j >= 117 && j <= 132)
             {
                 val = 1;
             }
             // coeff y = (300-149)/51 * x + 149
-            if (j > ((200 - 149) / (51)) * i + 149)
+            if (j >= ((200 - 149) / (51)) * i + 149)
             {
                 val = 1;
             }
-            if (j < 8 && i > 45 && i < 117)
+            if (j <= 8 && i >= 45 && i <= 117)
             {
                 val = 1;
             }
-            if (j < 10 && i > 127.5 && i < 142.5)
+            if (j <= 10 && i >= 127 && i <= 142)
             {
                 val = 1;
             }
-            // Palets
-            if (j > 55.5 - 7.5 && j < 55.5 + 7.5 && i > 83 && i < 83 + 13)
-            {
-                val = 2;
-            }
-            if (j > 67.5 - 7.5 && j < 67.5 + 7.5 && i > 83 - 6.5 && i < 83 + 6.5)
-            {
-                val = 2;
-            }
-            if (j > 79.5 - 7.5 && j < 79.5 + 7.5 && i > 83 && i < 83 + 13)
-            {
-                val = 2;
-            }
-            // Palets zone fouille
-            if (j > 128 - 7.5 && j < 128 + 7.5 && i > 81 && i < 81 + 13)
-            {
-                val = 2;
-            }
-            if (j > 132 - 7.5 && j < 132 + 7.5 && i > 100 && i < 100 + 13)
-            {
-                val = 2;
-            }
-            if (j > 147 - 7.5 && j < 147 + 7.5 && i > 90 && i < 90 + 13)
-            {
-                val = 2;
-            }
-            table[300 - i - 1][j - 1] = val;
+            table[300 - 1 - i][j] = val;
             table[i][j] = val;
         }
     }
-    for (int i = 0; i < 300; i++)
+}
+
+void Table::mouv()
+{
+    for (int i = 0; i < 6; i++)
     {
-        for (int j = 0; j < 200; j++)
+        for (int j = 0; j <= 6; j ++)
         {
-            int val = 0;
-            // notre robot
-            if (j > 70 - 15 && j < 70 + 15 && i < 30)
+            for (int k = 0; k <= 7; k ++)
             {
-                val = 3;
-            }
-            // Robot enemie
-            if (i > 227 - 15 && i < 227 + 15 && j > 82 - 15 && j < 82 + 15)
-            {
-                val = 4;
-            }
-            if (val == 4 || val == 3)
-            {
-                table[i][j] = val;
+                table[palets[i][0] - j][palets[i][1] - k] = 2;
+                table[palets[i][0] + j][palets[i][1] + k] = 2;
+                table[palets[i][0] - j][palets[i][1] + k] = 2;
+                table[palets[i][0] + j][palets[i][1] - k] = 2;
             }
         }
     }
+    for (int j = 0; j <= 15; j ++)
+    {
+        for (int k = 0; k <= 15; k ++)
+        {
+            table[my_robot[0] - j][my_robot[1] - k] = 3;
+            table[my_robot[0] + j][my_robot[1] + k] = 3;
+            table[my_robot[0] - j][my_robot[1] + k] = 3;
+            table[my_robot[0] + j][my_robot[1] - k] = 3;
+        }
+    }
+    for (int j = 0; j <= 15; j ++)
+    {
+        for (int k = 0; k <= 15; k ++)
+        {
+            table[int(opp_robot[0] - j)][int(opp_robot[1] - k)] = 4;
+            table[int(opp_robot[0] + j)][int(opp_robot[1] + k)] = 4;
+            table[int(opp_robot[0] - j)][int(opp_robot[1] + k)] = 4;
+            table[int(opp_robot[0] + j)][int(opp_robot[1] - k)] = 4;
+        }
+    }
 }
+
 void Table::show()
 {
+    fill();
+    mouv();
     for (int j = 0; j < 200; j += scale)
     {
         for (int i = 0; i < 300; i += scale)
@@ -116,16 +109,34 @@ void Table::show()
             {
                 s = "\x1B[31m";
             }
-            printf("%s%i ", s, val);
+            printf("%s%i", s, val);
         }
         printf("\n");
     }
 }
 
+void Table::set_palets(int x, int y, int pos){
+    palets[pos][0] = x;
+    palets[pos][1] = y;
+}
+
+void Table::set_my_robot(int x, int y){
+    my_robot[0] = x;
+    my_robot[1] = y;
+}
+
+void Table::set_opp_robot(int x, int y){
+    opp_robot[0] = x;
+    opp_robot[1] = y;
+}
+
 int main()
 {
-    Table t(3);
-    t.fill();
+    Table t(2);
+    t.show();
+    t.set_my_robot(30,150);
+    t.set_opp_robot(275,60);
+    t.set_palets(89,45,0);
     t.show();
     return 0;
 }
