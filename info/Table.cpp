@@ -1,4 +1,4 @@
-#include "table.hpp"
+#include "Table.hpp"
 #include <cstdlib>
 #include <cstdio>
 
@@ -14,7 +14,7 @@ Table::Table(int s, int h, int w)
     }
 }
 
-void Table::lib()
+Table::~Table()
 {
     for (int i = 0; i < height; i++)
     {
@@ -28,9 +28,9 @@ void Table::lib()
 // obstacle mobile : 2
 // notre robot : 3
 // robot enemie : 4
-void Table::fill()
+void Table::fixe_obstacle()
 {
-    for (int i = 0; i < 1500; i++)
+    for (int i = 0; i < width / 2; i++)
     {
         for (int j = 0; j < height; j++)
         {
@@ -58,47 +58,49 @@ void Table::fill()
     }
 }
 
-void Table::mouv()
+void Table::mouv_obstacle()
 {
-    for (int i = 0; i < 6; i++)
+    for (Sample *s : samples)
     {
         for (int j = 0; j <= 60; j++)
         {
             for (int k = 0; k <= 70; k++)
             {
-                table[palets[i][1] - k][palets[i][0] - j] = 2;
-                table[palets[i][1] + k][palets[i][0] + j] = 2;
-                table[palets[i][1] + k][palets[i][0] - j] = 2;
-                table[palets[i][1] - k][palets[i][0] + j] = 2;
+                table[s->get_y() - k][s->get_x() - j] = 2;
+                table[s->get_y() + k][s->get_x() + j] = 2;
+                table[s->get_y() + k][s->get_x() - j] = 2;
+                table[s->get_y() - k][s->get_x() + j] = 2;
             }
         }
     }
-    for (int j = 0; j <= 150; j++)
+    for (Robot *r : robots)
     {
-        for (int k = 0; k <= 150; k++)
+        for (int j = 0; j <= 150; j++)
         {
-            table[my_robot[1] - j][my_robot[0] - k] = 3;
-            table[my_robot[1] + j][my_robot[0] + k] = 3;
-            table[my_robot[1] - j][my_robot[0] + k] = 3;
-            table[my_robot[1] + j][my_robot[0] - k] = 3;
-        }
-    }
-    for (int j = 0; j <= 150; j++)
-    {
-        for (int k = 0; k <= 150; k++)
-        {
-            table[int(opp_robot[1] - j)][int(opp_robot[0] - k)] = 4;
-            table[int(opp_robot[1] + j)][int(opp_robot[0] + k)] = 4;
-            table[int(opp_robot[1] - j)][int(opp_robot[0] + k)] = 4;
-            table[int(opp_robot[1] + j)][int(opp_robot[0] - k)] = 4;
+            for (int k = 0; k <= 150; k++)
+            {
+                int val;
+                if (r->get_team() == 0)
+                {
+                    val = 3;
+                }
+                else
+                {
+                    val = 4;
+                }
+                table[r->get_y() - k][r->get_x() - j] = val;
+                table[r->get_y() + k][r->get_x() + j] = val;
+                table[r->get_y() + k][r->get_x() - j] = val;
+                table[r->get_y() - k][r->get_x() + j] = val;
+            }
         }
     }
 }
 
 void Table::show()
 {
-    fill();
-    mouv();
+    fixe_obstacle();
+    mouv_obstacle();
     for (int j = 0; j < height; j += scale)
     {
         for (int i = 0; i < width; i += scale)
@@ -131,31 +133,33 @@ void Table::show()
     }
 }
 
-void Table::set_palets(int x, int y, int pos)
-{
-    palets[pos][0] = x;
-    palets[pos][1] = y;
+void Table::add_robot(Robot *r){
+    robots.push_back(r);
 }
 
-void Table::set_my_robot(int x, int y)
-{
-    my_robot[0] = x;
-    my_robot[1] = y;
-}
-
-void Table::set_opp_robot(int x, int y)
-{
-    opp_robot[0] = x;
-    opp_robot[1] = y;
+void Table::add_sample(Sample *s){
+    samples.push_back(s);
 }
 
 int main()
 {
     Table t(30, 2000, 3000);
-    t.show();
-    t.set_my_robot(300, 1500);
-    t.set_opp_robot(2750, 600);
-    t.set_palets(890, 450, 0);
+    Robot * r1 = new Robot(150,700,0);
+    Robot * r2 = new Robot(2850,700,1);
+    Sample * s1 = new Sample(900,555,2);
+    Sample * s2 = new Sample(830,675,2);
+    Sample * s3 = new Sample(900,795,2);
+    Sample * s4 = new Sample(870,1270,2);
+    Sample * s5 = new Sample(1050,1330,2);
+    Sample * s6 = new Sample(950,1470,2);
+    t.add_robot(r1);
+    t.add_robot(r2);
+    t.add_sample(s1);
+    t.add_sample(s2);
+    t.add_sample(s3);
+    t.add_sample(s4);
+    t.add_sample(s5);
+    t.add_sample(s6);
     t.show();
     return 0;
 }
