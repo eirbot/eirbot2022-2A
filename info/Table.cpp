@@ -7,10 +7,10 @@ Table::Table(int s, int h, int w)
     scale = s;
     height = h;
     width = w;
-    table = (int **)malloc(height * sizeof(int *));
+    table = (Node **)malloc(height * sizeof(Node *));
     for (int i = 0; i < height; i++)
     {
-        table[i] = (int *)malloc(width * sizeof(int));
+        table[i] = (Node *)malloc(width * sizeof(Node));
     }
 }
 
@@ -52,8 +52,11 @@ void Table::fixe_obstacle()
             {
                 val = 1;
             }
-            table[j][width - 1 - i] = val;
-            table[j][i] = val;
+
+            Node n(val);
+            table[j][width - 1 - i] = n;
+            Node n1(val);
+            table[j][i] = n1;
         }
     }
 }
@@ -62,14 +65,40 @@ void Table::mouv_obstacle()
 {
     for (Sample *s : samples)
     {
+
         for (int j = 0; j <= 60; j++)
         {
             for (int k = 0; k <= 70; k++)
             {
-                table[s->get_y() - k][s->get_x() - j] = 2;
-                table[s->get_y() + k][s->get_x() + j] = 2;
-                table[s->get_y() + k][s->get_x() - j] = 2;
-                table[s->get_y() - k][s->get_x() + j] = 2;
+                int val = 2;
+                int y = s->get_y() - k;
+                int x = s->get_x() - j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n(val);
+                    table[y][x] = n;
+                }
+                y = s->get_y() + k;
+                x = s->get_x() + j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n1(val);
+                    table[y][x] = n1;
+                }
+                y = s->get_y() + k;
+                x = s->get_x() - j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n2(val);
+                    table[y][x] = n2;
+                }
+                y = s->get_y() - k;
+                x = s->get_x() + j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n3(val);
+                    table[y][x] = n3;
+                }
             }
         }
     }
@@ -88,10 +117,34 @@ void Table::mouv_obstacle()
                 {
                     val = 4;
                 }
-                table[r->get_y() - k][r->get_x() - j] = val;
-                table[r->get_y() + k][r->get_x() + j] = val;
-                table[r->get_y() + k][r->get_x() - j] = val;
-                table[r->get_y() - k][r->get_x() + j] = val;
+                int y = r->get_y() - k;
+                int x = r->get_x() - j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n(val);
+                    table[y][x] = n;
+                }
+                y = r->get_y() + k;
+                x = r->get_x() + j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n1(val);
+                    table[y][x] = n1;
+                }
+                y = r->get_y() + k;
+                x = r->get_x() - j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n2(val);
+                    table[y][x] = n2;
+                }
+                y = r->get_y() - k;
+                x = r->get_x() + j;
+                if (y >= 0 && y < height && x >= 0 && x < width)
+                {
+                    Node n3(val);
+                    table[y][x] = n3;
+                }
             }
         }
     }
@@ -106,7 +159,7 @@ void Table::show()
         for (int i = 0; i < width; i += scale)
         {
             const char *s = "";
-            int val = table[j][i];
+            int val = table[j][i].get_val();
             if (val == 0)
             {
                 s = "\x1B[34m";
@@ -133,25 +186,27 @@ void Table::show()
     }
 }
 
-void Table::add_robot(Robot *r){
+void Table::add_robot(Robot *r)
+{
     robots.push_back(r);
 }
 
-void Table::add_sample(Sample *s){
+void Table::add_sample(Sample *s)
+{
     samples.push_back(s);
 }
 
 int main()
 {
     Table t(30, 2000, 3000);
-    Robot * r1 = new Robot(150,700,0);
-    Robot * r2 = new Robot(2850,700,1);
-    Sample * s1 = new Sample(900,555,2);
-    Sample * s2 = new Sample(830,675,2);
-    Sample * s3 = new Sample(900,795,2);
-    Sample * s4 = new Sample(870,1270,2);
-    Sample * s5 = new Sample(1050,1330,2);
-    Sample * s6 = new Sample(950,1470,2);
+    Robot *r1 = new Robot(150, 700, 0);
+    Robot *r2 = new Robot(2840, 700, 1);
+    Sample *s1 = new Sample(900, 555, 2);
+    Sample *s2 = new Sample(830, 675, 2);
+    Sample *s3 = new Sample(900, 795, 2);
+    Sample *s4 = new Sample(870, 1270, 2);
+    Sample *s5 = new Sample(1050, 1330, 2);
+    Sample *s6 = new Sample(950, 1470, 2);
     t.add_robot(r1);
     t.add_robot(r2);
     t.add_sample(s1);
@@ -161,5 +216,13 @@ int main()
     t.add_sample(s5);
     t.add_sample(s6);
     t.show();
+    delete (r1);
+    delete (r2);
+    delete (s1);
+    delete (s2);
+    delete (s3);
+    delete (s4);
+    delete (s5);
+    delete (s6);
     return 0;
 }
