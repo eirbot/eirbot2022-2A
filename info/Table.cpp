@@ -53,9 +53,9 @@ void Table::fixe_obstacle()
                 val = 1;
             }
 
-            Node n(val);
+            Node n(val, width - 1 - i, j);
             table[j][width - 1 - i] = n;
-            Node n1(val);
+            Node n1(val, i, j);
             table[j][i] = n1;
         }
     }
@@ -75,28 +75,28 @@ void Table::mouv_obstacle()
                 int x = s->get_x() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n(val);
+                    Node n(val, x, y);
                     table[y][x] = n;
                 }
                 y = s->get_y() + k;
                 x = s->get_x() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n1(val);
+                    Node n1(val, x, y);
                     table[y][x] = n1;
                 }
                 y = s->get_y() + k;
                 x = s->get_x() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n2(val);
+                    Node n2(val, x, y);
                     table[y][x] = n2;
                 }
                 y = s->get_y() - k;
                 x = s->get_x() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n3(val);
+                    Node n3(val, x, y);
                     table[y][x] = n3;
                 }
             }
@@ -121,28 +121,28 @@ void Table::mouv_obstacle()
                 int x = r->get_x() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n(val);
+                    Node n(val, x, y);
                     table[y][x] = n;
                 }
                 y = r->get_y() + k;
                 x = r->get_x() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n1(val);
+                    Node n1(val, x, y);
                     table[y][x] = n1;
                 }
                 y = r->get_y() + k;
                 x = r->get_x() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n2(val);
+                    Node n2(val, x, y);
                     table[y][x] = n2;
                 }
                 y = r->get_y() - k;
                 x = r->get_x() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
-                    Node n3(val);
+                    Node n3(val, x, y);
                     table[y][x] = n3;
                 }
             }

@@ -1,6 +1,6 @@
 #include "Node.hpp"
 
-Node::Node(int v):_val(v){}
+Node::Node(int v, int x, int y):_val(v), _x(x), _y(y){}
 
 Node::~Node(){
     delete _previous;
@@ -24,6 +24,14 @@ int Node::get_g() const{
 
 int Node::get_val() const{
     return _val;
+}
+
+int Node::get_x() const{
+    return _x;
+}
+
+int Node::get_y() const{
+    return _y;
 }
 
 Node* Node::get_previous() const{
