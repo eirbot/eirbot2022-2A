@@ -12,6 +12,7 @@ Table::Table(int s, int h, int w)
     {
         map[i] = (Node *)malloc(width * sizeof(Node));
     }
+    fixeObstacle();
 }
 
 Table::~Table()
@@ -164,7 +165,6 @@ int Table::getWidth(){
 
 void Table::show()
 {
-    fixeObstacle();
     mouvObstacle();
     for (int j = 0; j < height; j += scale)
     {
@@ -208,6 +208,7 @@ void Table::addSample(Sample *s)
     samples.push_back(s);
 }
 
+/*
 int main()
 {
     Table t(30, 2000, 3000);
@@ -236,4 +237,4 @@ int main()
     delete (s5);
     delete (s6);
     return 0;
-}
+}*/

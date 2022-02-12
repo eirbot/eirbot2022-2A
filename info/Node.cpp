@@ -8,6 +8,16 @@ Node::~Node(){
 
 void Node::setG(int g){
     g = g;
+    f = g + h;
+}
+
+void Node::setH(int h){
+    h = h;
+    f = g + h;
+}
+
+void Node::setVal(int v){
+    val = v;
 }
 
 void Node::setPrevious(Node* p){
