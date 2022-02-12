@@ -1,39 +1,39 @@
 #include "Node.hpp"
 
-Node::Node(int v, int x, int y):_val(v), _x(x), _y(y){}
+Node::Node(int v, int x, int y):val(v), x(x), y(y){}
 
 Node::~Node(){
-    delete _previous;
+    delete previous;
 }
 
-void Node::set_g(int g){
-    _g = g;
+void Node::setG(int g){
+    g = g;
 }
 
-void Node::set_previous(Node* p){
-    _previous = p;
+void Node::setPrevious(Node* p){
+    previous = p;
 }
 
-int Node::get_f() const{
-    return _f;
+int Node::getF() const{
+    return f;
 }
 
-int Node::get_g() const{
-    return _g;
+int Node::getG() const{
+    return g;
 }
 
-int Node::get_val() const{
-    return _val;
+int Node::getVal() const{
+    return val;
 }
 
-int Node::get_x() const{
-    return _x;
+int Node::getX() const{
+    return x;
 }
 
-int Node::get_y() const{
-    return _y;
+int Node::getY() const{
+    return y;
 }
 
-Node* Node::get_previous() const{
-    return _previous;
+Node* Node::getPrevious() const{
+    return previous;
 }

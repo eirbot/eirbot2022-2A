@@ -1,20 +1,20 @@
 #include "Sample.hpp"
 
-Sample::Sample(int x, int y, int c):_x(x),_y(y),_color(c){};
+Sample::Sample(int x, int y, int c):x(x),y(y),color(c){};
 
-void Sample::set_position(int x, int y){
-    _x = x;
-    _y = y;
+void Sample::setPosition(int x, int y){
+    x = x;
+    y = y;
 }
 
-int Sample::get_x() const {
-    return _x;
+int Sample::getX() const {
+    return x;
 }
 
-int Sample::get_y() const {
-    return _y;
+int Sample::getY() const {
+    return y;
 }
 
-int Sample::get_color() const {
-    return _color;
+int Sample::getColor() const {
+    return color;
 }

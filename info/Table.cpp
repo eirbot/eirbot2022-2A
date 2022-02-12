@@ -7,10 +7,10 @@ Table::Table(int s, int h, int w)
     scale = s;
     height = h;
     width = w;
-    table = (Node **)malloc(height * sizeof(Node *));
+    map = (Node **)malloc(height * sizeof(Node *));
     for (int i = 0; i < height; i++)
     {
-        table[i] = (Node *)malloc(width * sizeof(Node));
+        map[i] = (Node *)malloc(width * sizeof(Node));
     }
 }
 
@@ -18,9 +18,9 @@ Table::~Table()
 {
     for (int i = 0; i < height; i++)
     {
-        free(table[i]);
+        free(map[i]);
     }
-    free(table);
+    free(map);
 }
 
 // vide : 0
@@ -28,7 +28,7 @@ Table::~Table()
 // obstacle mobile : 2
 // notre robot : 3
 // robot enemie : 4
-void Table::fixe_obstacle()
+void Table::fixeObstacle()
 {
     for (int i = 0; i < width / 2; i++)
     {
@@ -54,14 +54,14 @@ void Table::fixe_obstacle()
             }
 
             Node n(val, width - 1 - i, j);
-            table[j][width - 1 - i] = n;
+            map[j][width - 1 - i] = n;
             Node n1(val, i, j);
-            table[j][i] = n1;
+            map[j][i] = n1;
         }
     }
 }
 
-void Table::mouv_obstacle()
+void Table::mouvObstacle()
 {
     for (Sample *s : samples)
     {
@@ -71,33 +71,33 @@ void Table::mouv_obstacle()
             for (int k = 0; k <= 70; k++)
             {
                 int val = 2;
-                int y = s->get_y() - k;
-                int x = s->get_x() - j;
+                int y = s->getY() - k;
+                int x = s->getX() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n(val, x, y);
-                    table[y][x] = n;
+                    map[y][x] = n;
                 }
-                y = s->get_y() + k;
-                x = s->get_x() + j;
+                y = s->getY() + k;
+                x = s->getX() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n1(val, x, y);
-                    table[y][x] = n1;
+                    map[y][x] = n1;
                 }
-                y = s->get_y() + k;
-                x = s->get_x() - j;
+                y = s->getY() + k;
+                x = s->getX() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n2(val, x, y);
-                    table[y][x] = n2;
+                    map[y][x] = n2;
                 }
-                y = s->get_y() - k;
-                x = s->get_x() + j;
+                y = s->getY() - k;
+                x = s->getX() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n3(val, x, y);
-                    table[y][x] = n3;
+                    map[y][x] = n3;
                 }
             }
         }
@@ -109,7 +109,7 @@ void Table::mouv_obstacle()
             for (int k = 0; k <= 150; k++)
             {
                 int val;
-                if (r->get_team() == 0)
+                if (r->getTeam() == 0)
                 {
                     val = 3;
                 }
@@ -117,49 +117,61 @@ void Table::mouv_obstacle()
                 {
                     val = 4;
                 }
-                int y = r->get_y() - k;
-                int x = r->get_x() - j;
+                int y = r->getY() - k;
+                int x = r->getX() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n(val, x, y);
-                    table[y][x] = n;
+                    map[y][x] = n;
                 }
-                y = r->get_y() + k;
-                x = r->get_x() + j;
+                y = r->getY() + k;
+                x = r->getX() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n1(val, x, y);
-                    table[y][x] = n1;
+                    map[y][x] = n1;
                 }
-                y = r->get_y() + k;
-                x = r->get_x() - j;
+                y = r->getY() + k;
+                x = r->getX() - j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n2(val, x, y);
-                    table[y][x] = n2;
+                    map[y][x] = n2;
                 }
-                y = r->get_y() - k;
-                x = r->get_x() + j;
+                y = r->getY() - k;
+                x = r->getX() + j;
                 if (y >= 0 && y < height && x >= 0 && x < width)
                 {
                     Node n3(val, x, y);
-                    table[y][x] = n3;
+                    map[y][x] = n3;
                 }
             }
         }
     }
 }
 
+Node* Table::nodeAt(int x, int y){
+    return &map[y][x];
+}
+
+int Table::getHeight(){
+    return height;
+}
+
+int Table::getWidth(){
+    return width;
+}
+
 void Table::show()
 {
-    fixe_obstacle();
-    mouv_obstacle();
+    fixeObstacle();
+    mouvObstacle();
     for (int j = 0; j < height; j += scale)
     {
         for (int i = 0; i < width; i += scale)
         {
             const char *s = "";
-            int val = table[j][i].get_val();
+            int val = map[j][i].getVal();
             if (val == 0)
             {
                 s = "\x1B[34m";
@@ -186,12 +198,12 @@ void Table::show()
     }
 }
 
-void Table::add_robot(Robot *r)
+void Table::addRobot(Robot *r)
 {
     robots.push_back(r);
 }
 
-void Table::add_sample(Sample *s)
+void Table::addSample(Sample *s)
 {
     samples.push_back(s);
 }
@@ -207,14 +219,13 @@ int main()
     Sample *s4 = new Sample(870, 1270, 2);
     Sample *s5 = new Sample(1050, 1330, 2);
     Sample *s6 = new Sample(950, 1470, 2);
-    t.add_robot(r1);
-    t.add_robot(r2);
-    t.add_sample(s1);
-    t.add_sample(s2);
-    t.add_sample(s3);
-    t.add_sample(s4);
-    t.add_sample(s5);
-    t.add_sample(s6);
+    t.addRobot(r1);
+    t.addRobot(r2);
+    t.addSample(s1);
+    t.addSample(s3);
+    t.addSample(s4);
+    t.addSample(s5);
+    t.addSample(s6);
     t.show();
     delete (r1);
     delete (r2);

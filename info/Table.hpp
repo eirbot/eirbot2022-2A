@@ -9,7 +9,7 @@ typedef std::vector<Sample*> sampleList;
 class Table {
     int height;
     int width;
-    Node ** table;
+    Node ** map;
     int scale;
     robotList robots;
     sampleList samples;
@@ -18,9 +18,12 @@ class Table {
     Table(int, int, int);
     ~Table();
     //voir s'il faut ajouter constructeur par recopie et operator=
-    void fixe_obstacle();
-    void mouv_obstacle();
+    void fixeObstacle();
+    void mouvObstacle();
+    Node* nodeAt(int, int);
+    int getHeight();
+    int getWidth();
     void show();
-    void add_robot(Robot* );
-    void add_sample(Sample*);
+    void addRobot(Robot* );
+    void addSample(Sample*);
 };
