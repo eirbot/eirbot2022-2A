@@ -1,6 +1,7 @@
 #include "Astar.hpp"
 
-int main(){
+int main()
+{
     Table t(30, 2000, 3000);
     /*Robot *r1 = new Robot(150, 700, 0);
     Robot *r2 = new Robot(2840, 700, 1);
@@ -17,8 +18,8 @@ int main(){
     t.addSample(s4);
     t.addSample(s5);
     t.addSample(s6);*/
-    Node* start = t.nodeAt(1000,1500);
-    Node * endNode = t.nodeAt(1040,1500);
+    Node *start = t.nodeAt(0, 0);
+    Node *endNode = t.nodeAt(2999, 0);
     start->setPrevious(start);
     nodeList end;
     end.push_back(endNode);

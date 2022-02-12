@@ -6,14 +6,16 @@ Node::~Node(){
     delete previous;
 }
 
-void Node::setG(int g){
-    g = g;
-    f = g + h;
+void Node::setG(int i){
+    g = i;
 }
 
-void Node::setH(int h){
-    h = h;
-    f = g + h;
+void Node::setH(int i){
+    h = i;
+}
+
+void Node::setF(int i){
+    f = i;
 }
 
 void Node::setVal(int v){
@@ -30,6 +32,10 @@ int Node::getF() const{
 
 int Node::getG() const{
     return g;
+}
+
+int Node::getH() const{
+    return h;
 }
 
 int Node::getVal() const{

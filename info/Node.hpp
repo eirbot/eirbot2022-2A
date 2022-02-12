@@ -14,10 +14,12 @@ class Node{
     ~Node();
     void setG(int);
     void setH(int);
+    void setF(int);
     void setVal(int);
     void setPrevious(Node*);
     int getF() const;
     int getG() const;
+    int getH() const;
     int getVal() const;
     int getX() const;
     int getY() const;

@@ -1,12 +1,14 @@
 #include "Astar.hpp"
-#include <math.h>
 #include <string>
+#include <math.h>
 
-Astar::Astar(Node *n, nodeList nlist, Table *t) : start(n), end(nlist), map(t) {}
+Astar::Astar(Node *n, nodeList nlist, Table *t) : start(n), end(nlist), map(t) {
+    initialize();
+}
 
 int Astar::distance(Node *n1, Node *n2)
 {
-    return sqrt((n2->getX() - n1->getX()) * (n2->getX() - n1->getX()) + (n2->getY() - n1->getY()) * (n2->getY() - n1->getY()));
+    return (n2->getX() - n1->getX()) * (n2->getX() - n1->getX()) + (n2->getY() - n1->getY()) * (n2->getY() - n1->getY());
 }
 
 Astar::~Astar() {}
@@ -29,7 +31,6 @@ void Astar::searchPath()
     while (current != nullptr)
     {
         path.push_back(current);
-        printf("%i, %i\n", current->getX(), current->getY());
         current = current->getPrevious();
     }
 }
@@ -38,12 +39,22 @@ nodeList Astar::findPath()
 {
     Node *current = start;
     current->setG(0);
+    current->setF(current->getG() + current->getH());
     current->setPrevious(nullptr);
-    initialize();
     open_list.push_back(current);
     closed_list.push_back(current);
+    //int i =0;
     while (!isNodeOnList(current, end))
     {
+        /*i++;
+        if(i<10){
+        printf("%i\n",i);
+        printf("x : %i, y : %i\n", current->getX(), current->getY());
+        printf("%i\n", current->getF());
+        printf("%i\n", current->getG());
+        printf("%i\n", current->getH());
+        printList(open_list);
+        }*/
         nodeList neighbors = findNeighbor(current);
         for (Node *neighbor : neighbors)
         {
@@ -52,6 +63,7 @@ nodeList Astar::findPath()
                 if (!isNodeOnList(neighbor, closed_list))
                 {
                     neighbor->setG(current->getG() + distance(current, neighbor));
+                    neighbor->setF(neighbor->getG() + neighbor->getH());
                     neighbor->setPrevious(current);
                     if (isNodeOnList(neighbor, open_list))
                     {
@@ -181,7 +193,6 @@ void Astar::printPath(Table &map, nodeList *path, nodeList *openList, nodeList *
             if (isNodeOnList(map.nodeAt(j, i), *path))
             {
                 file << "255 0 0 ";
-                map.nodeAt(j, i)->setVal(5);
             }
             else if (isNodeOnList(map.nodeAt(j, i), *openList))
             {
@@ -222,4 +233,5 @@ void Astar::printList(nodeList l)
     {
         printf("x : %i, y : %i\n", n->getX(), n->getY());
     }
+    printf("\n");
 }
