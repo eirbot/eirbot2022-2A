@@ -27,7 +27,7 @@ int main()
     nodeList path = astar.findPath();
     astar.printList(path);
     //astar.printPath(t,&path,astar.getOpen(), astar.getClosed());
-    t.show();
+    //t.show();
     /*delete (r1);
     delete (r2);
     delete (s1);

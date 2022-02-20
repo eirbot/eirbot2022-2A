@@ -15,7 +15,7 @@ class Astar{
     nodeList path;
     Astar(Node*, nodeList, Table* );
     ~Astar();
-    int distance(Node *, Node *);
+    float distance(Node *, Node *);
     void initialize();
     void searchPath();
     nodeList findPath();

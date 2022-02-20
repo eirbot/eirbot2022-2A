@@ -6,15 +6,15 @@ Node::~Node(){
     delete previous;
 }
 
-void Node::setG(int i){
+void Node::setG(float i){
     g = i;
 }
 
-void Node::setH(int i){
+void Node::setH(float i){
     h = i;
 }
 
-void Node::setF(int i){
+void Node::setF(float i){
     f = i;
 }
 
@@ -26,15 +26,15 @@ void Node::setPrevious(Node* p){
     previous = p;
 }
 
-int Node::getF() const{
+float Node::getF() const{
     return f;
 }
 
-int Node::getG() const{
+float Node::getG() const{
     return g;
 }
 
-int Node::getH() const{
+float Node::getH() const{
     return h;
 }
 

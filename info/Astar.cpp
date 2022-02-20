@@ -6,9 +6,9 @@ Astar::Astar(Node *n, nodeList nlist, Table *t) : start(n), end(nlist), map(t) {
     initialize();
 }
 
-int Astar::distance(Node *n1, Node *n2)
+float Astar::distance(Node *n1, Node *n2)
 {
-    return (n2->getX() - n1->getX()) * (n2->getX() - n1->getX()) + (n2->getY() - n1->getY()) * (n2->getY() - n1->getY());
+    return sqrt((n2->getX() - n1->getX()) * (n2->getX() - n1->getX()) + (n2->getY() - n1->getY()) * (n2->getY() - n1->getY()));
 }
 
 Astar::~Astar() {}
@@ -46,6 +46,7 @@ nodeList Astar::findPath()
     //int i =0;
     while (!isNodeOnList(current, end))
     {
+        printList(open_list);
         /*i++;
         if(i<10){
         printf("%i\n",i);
