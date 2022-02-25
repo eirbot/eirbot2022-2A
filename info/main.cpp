@@ -2,38 +2,43 @@
 
 int main()
 {
-    Table t(30, 2000, 3000);
-    /*Robot *r1 = new Robot(150, 700, 0);
-    Robot *r2 = new Robot(2840, 700, 1);
-    Sample *s1 = new Sample(900, 555, 2);
-    Sample *s2 = new Sample(830, 675, 2);
-    Sample *s3 = new Sample(900, 795, 2);
-    Sample *s4 = new Sample(870, 1270, 2);
-    Sample *s5 = new Sample(1050, 1330, 2);
-    Sample *s6 = new Sample(950, 1470, 2);
-    t.addRobot(r1);
+    Table t(10);
+    Robot *r2 = new Robot(284, 70, 1);
+    Sample *s1 = new Sample(90, 55, 2);
+    Sample *s2 = new Sample(83, 67, 2);
+    Sample *s3 = new Sample(90, 79, 2);
+    Sample *s4 = new Sample(87, 127, 2);
+    Sample *s5 = new Sample(105, 133, 2);
+    Sample *s6 = new Sample(95, 147, 2);
     t.addRobot(r2);
     t.addSample(s1);
+    t.addSample(s2);
     t.addSample(s3);
     t.addSample(s4);
     t.addSample(s5);
-    t.addSample(s6);*/
-    Node *start = t.nodeAt(0, 0);
-    Node *endNode = t.nodeAt(2999, 0);
+    t.addSample(s6);
+    t.mouvObstacle();
+    Node *start = t.nodeAt(15, 15);
+    Node *endNode = t.nodeAt(283, 16);
+    Node *endNode2 = t.nodeAt(115, 95);
     start->setPrevious(start);
     nodeList end;
     end.push_back(endNode);
-    Astar astar(start, end, &t);
+    end.push_back(endNode2);
+    Astar astar(start, &end, &t);
     nodeList path = astar.findPath();
     astar.printList(path);
-    //astar.printPath(t,&path,astar.getOpen(), astar.getClosed());
-    //t.show();
-    /*delete (r1);
+    astar.printPath(t,&path,astar.getOpen(), astar.getClosed());
+    Robot *r1 = new Robot(path.at(path.size()-1)->getX(), path.at(path.size()-1)->getY(), 0);
+    t.addRobot(r1);
+    t.mouvObstacle();
+    t.show(3);
+    delete (r1);
     delete (r2);
     delete (s1);
     delete (s2);
     delete (s3);
     delete (s4);
     delete (s5);
-    delete (s6);*/
+    delete (s6);
 }

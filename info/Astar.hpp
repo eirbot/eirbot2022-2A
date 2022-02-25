@@ -7,16 +7,16 @@ typedef std::vector<Node*> nodeList;
 
 class Astar{
     Node *start;
-    nodeList end;
+    nodeList * end;
     Table *map;
     public:
     nodeList open_list;
     nodeList closed_list;
     nodeList path;
-    Astar(Node*, nodeList, Table* );
+    Astar(Node*, nodeList *, Table* );
     ~Astar();
     float distance(Node *, Node *);
-    void initialize();
+    float minDist(Node *, nodeList &);
     void searchPath();
     nodeList findPath();
     nodeList findNeighbor(Node*);
@@ -26,5 +26,6 @@ class Astar{
     void printPath(Table&, nodeList*, nodeList*, nodeList*);
     nodeList* getOpen();
     nodeList* getClosed();
+    nodeList* getPath();
     void printList(nodeList);
 };
