@@ -3,8 +3,6 @@
 #include <math.h>
 #include <bits/stdc++.h>
 
-int x1, test1, x2, y2, d;
-
 Astar::Astar(Node *n, nodeList *nlist, Table *t) : start(n), end(nlist), map(t){}
 
 float Astar::distance(Node *n1, Node *n2)
