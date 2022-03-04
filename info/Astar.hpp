@@ -1,3 +1,6 @@
+#ifndef ASTAR_HPP
+#define ASTAR_HPP
+
 #include "Table.hpp"
 #include <vector>
 #include <iostream>
@@ -28,3 +31,5 @@ class Astar{
     nodeList* getClosed();
     void printList(nodeList);
 };
+
+#endif

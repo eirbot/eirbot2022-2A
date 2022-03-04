@@ -1,4 +1,5 @@
 #include "Astar.hpp"
+#include "Movement.hpp"
 
 int main()
 {
@@ -26,6 +27,9 @@ int main()
     Astar astar(start, end, &t);
     nodeList path = astar.findPath();
     astar.printList(path);
+    Movement mov;
+    mov.importantPoints(path);
+    astar.printList(mov.getMov());
     //astar.printPath(t,&path,astar.getOpen(), astar.getClosed());
     //t.show();
     /*delete (r1);
