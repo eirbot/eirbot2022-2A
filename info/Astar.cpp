@@ -1,10 +1,9 @@
 #include "Astar.hpp"
 #include <string>
 #include <math.h>
+#include <bits/stdc++.h>
 
-Astar::Astar(Node *n, nodeList nlist, Table *t) : start(n), end(nlist), map(t) {
-    initialize();
-}
+Astar::Astar(Node *n, nodeList *nlist, Table *t) : start(n), end(nlist), map(t){}
 
 float Astar::distance(Node *n1, Node *n2)
 {
@@ -13,16 +12,17 @@ float Astar::distance(Node *n1, Node *n2)
 
 Astar::~Astar() {}
 
-void Astar::initialize()
+float Astar::minDist(Node *n, nodeList &nlist)
 {
-    for (int i = 0; i < map->getHeight(); i++)
+    float lowestDist = -1;
+    for (Node *end : nlist)
     {
-        for (int j = 0; j < map->getWidth(); j++)
+        if (distance(n, end) < lowestDist || lowestDist == -1)
         {
-            Node *n = map->nodeAt(j, i);
-            n->setH(distance(n, end.front()));
+            lowestDist = distance(n, end);
         }
     }
+    return lowestDist;
 }
 
 void Astar::searchPath()
@@ -33,6 +33,7 @@ void Astar::searchPath()
         path.push_back(current);
         current = current->getPrevious();
     }
+    std::reverse(path.begin(), path.end());
 }
 
 nodeList Astar::findPath()
@@ -43,19 +44,8 @@ nodeList Astar::findPath()
     current->setPrevious(nullptr);
     open_list.push_back(current);
     closed_list.push_back(current);
-    //int i =0;
-    while (!isNodeOnList(current, end))
+    while (!isNodeOnList(current, *end))
     {
-        printList(open_list);
-        /*i++;
-        if(i<10){
-        printf("%i\n",i);
-        printf("x : %i, y : %i\n", current->getX(), current->getY());
-        printf("%i\n", current->getF());
-        printf("%i\n", current->getG());
-        printf("%i\n", current->getH());
-        printList(open_list);
-        }*/
         nodeList neighbors = findNeighbor(current);
         for (Node *neighbor : neighbors)
         {
@@ -63,28 +53,34 @@ nodeList Astar::findPath()
             {
                 if (!isNodeOnList(neighbor, closed_list))
                 {
-                    neighbor->setG(current->getG() + distance(current, neighbor));
-                    neighbor->setF(neighbor->getG() + neighbor->getH());
-                    neighbor->setPrevious(current);
+                    float tmpG = current->getG() + distance(current, neighbor);
                     if (isNodeOnList(neighbor, open_list))
                     {
                         int place = findPlace(neighbor, open_list);
-                        if (neighbor->getF() < open_list[place]->getF())
+                        if (tmpG <= open_list[place]->getG())
                         {
+                            neighbor->setG(tmpG);
+                            neighbor->setH(minDist(neighbor, *end));
+                            neighbor->setF(neighbor->getG() + neighbor->getH());
+                            neighbor->setPrevious(current);
                             open_list[place] = neighbor;
                         }
                     }
                     else
                     {
+                        neighbor->setG(tmpG);
+                        neighbor->setH(minDist(neighbor, *end));
+                        neighbor->setF(neighbor->getG() + neighbor->getH());
+                        neighbor->setPrevious(current);
                         open_list.push_back(neighbor);
                     }
                 }
             }
         }
         current = findLowestCostNode(open_list);
-        if (current == nullptr)
+        if (current == nullptr || open_list.empty())
         {
-            return {};
+            return path;
         }
         closed_list.push_back(current);
         int place = findPlace(current, open_list);
@@ -99,45 +95,82 @@ nodeList Astar::findNeighbor(Node *n)
     nodeList neighbor;
     int x = n->getX();
     int y = n->getY();
-    if (x > 0)
+    int scale = map->getScale();
+    bool right = true;
+    bool left = true;
+    bool up = true;
+    bool down = true;
+    for (int i = -150 * scale/100; i <= 150 * scale/100; i++)
+    {
+        if (x > 150 * scale/100)
+        {
+            if (map->nodeAt(x - 150 * scale/100 - 1, y + i)->getVal() != 0 &&
+                map->nodeAt(x - 150 * scale/100 - 1, y + i)->getVal() != 3)
+            {
+                left = false;
+            }
+        }
+        if (x < map->getWidth() - 150 * scale/100 - 1)
+        {
+            if (map->nodeAt(x + 150 * scale/100 + 1, y + i)->getVal() != 0 &&
+                map->nodeAt(x + 150 * scale/100 + 1, y + i)->getVal() != 3)
+            {
+                right = false;
+            }
+        }
+        if (y > 150 * scale/100)
+        {
+            if (map->nodeAt(x + i, y - 150 * scale/100 - 1)->getVal() != 0 &&
+                map->nodeAt(x + i, y - 150 * scale/100 - 1)->getVal() != 3)
+            {
+                up = false;
+            }
+        }
+        if (y < map->getHeight() - 150 * scale/100 - 1)
+        {
+            if (map->nodeAt(x + i, y + 150 * scale/100 + 1)->getVal() != 0 &&
+                map->nodeAt(x + i, y - 150 * scale/100 + 1)->getVal() != 3)
+            {
+                down = false;
+            }
+        }
+    }
+    left = left && x > 150 * scale/100;
+    right = right && x < map->getWidth() - 150 * scale/100 - 1;
+    up = up && y > 150 * scale/100;
+    down = down && y < map->getHeight() - 150 * scale/100 - 1;
+
+    if (left)
     {
         neighbor.push_back(map->nodeAt(x - 1, y));
     }
-    if (x < map->getWidth() - 1)
+    if (right)
     {
         neighbor.push_back(map->nodeAt(x + 1, y));
     }
-    if (y > 0)
+    if (up)
     {
         neighbor.push_back(map->nodeAt(x, y - 1));
     }
-    if (y < map->getHeight() - 1)
+    if (down)
     {
         neighbor.push_back(map->nodeAt(x, y + 1));
     }
-    if (x > 0 && y > 0)
+    if (left && up)
     {
         neighbor.push_back(map->nodeAt(x - 1, y - 1));
     }
-    if (x > 0 && y < map->getHeight() - 1)
+    if (left && down)
     {
         neighbor.push_back(map->nodeAt(x - 1, y + 1));
     }
-    if (x < map->getWidth() - 1 && y > 0)
+    if (right && up)
     {
         neighbor.push_back(map->nodeAt(x + 1, y - 1));
     }
-    if (x < map->getWidth() - 1 && y < map->getHeight() - 1)
+    if (right && down)
     {
         neighbor.push_back(map->nodeAt(x + 1, y + 1));
-    }
-    for (size_t i = 0; i < neighbor.size(); i++)
-    {
-        if (neighbor[i]->getVal() != 0)
-        {
-            neighbor.erase(neighbor.begin() + i);
-            i--;
-        }
     }
     return neighbor;
 }
@@ -169,13 +202,24 @@ int Astar::findPlace(Node *n, const nodeList &nlist)
 Node *Astar::findLowestCostNode(const nodeList &nlist)
 {
     Node *lowestCostNode = nullptr;
-    int lowestCost = -1;
+    float lowestCost = -1;
     for (Node *node : nlist)
     {
-        if (node->getF() < lowestCost || lowestCost == -1)
+        if (node->getF() <= lowestCost || lowestCost == -1)
         {
-            lowestCost = node->getF();
-            lowestCostNode = node;
+            if (node->getF() < lowestCost || lowestCost == -1)
+            {
+                lowestCost = node->getF();
+                lowestCostNode = node;
+            }
+            else
+            {
+                if (node->getG() < lowestCostNode->getG())
+                {
+                    lowestCost = node->getF();
+                    lowestCostNode = node;
+                }
+            }
         }
     }
     return lowestCostNode;
@@ -186,24 +230,22 @@ void Astar::printPath(Table &map, nodeList *path, nodeList *openList, nodeList *
     std::ofstream file;
     file.open("map.ppm");
     file << "P3\n"
-         << map.getHeight() << " " << map.getWidth() << "\n255\n";
+         << map.getWidth() << " " << map.getHeight() << "\n255\n";
     for (int i = 0; i < map.getHeight(); i++)
     {
         for (int j = 0; j < map.getWidth(); j++)
         {
             if (isNodeOnList(map.nodeAt(j, i), *path))
             {
-                file << "255 0 0 ";
+                file << "0 255 0 ";
             }
             else if (isNodeOnList(map.nodeAt(j, i), *openList))
             {
-                file << "0 0 255 ";
-                map.nodeAt(j, i)->setVal(6);
+                file << "0 200 255 ";
             }
             else if (isNodeOnList(map.nodeAt(j, i), *closedList))
             {
-                file << "0 255 0 ";
-                map.nodeAt(j, i)->setVal(7);
+                file << "150 0 255 ";
             }
             else if (map.nodeAt(j, i)->getVal() != 0)
             {
@@ -226,6 +268,11 @@ nodeList *Astar::getOpen()
 nodeList *Astar::getClosed()
 {
     return &closed_list;
+}
+
+nodeList *Astar::getPath()
+{
+    return &path;
 }
 
 void Astar::printList(nodeList l)

@@ -1,12 +1,14 @@
 #include "Table.hpp"
 #include <cstdlib>
 #include <cstdio>
+#include "math.h"
 
-Table::Table(int s, int h, int w)
+
+Table::Table(int s)
 {
     scale = s;
-    height = h;
-    width = w;
+    height = 2000 *scale/100;
+    width = 3000*scale/100;
     map = (Node **)malloc(height * sizeof(Node *));
     for (int i = 0; i < height; i++)
     {
@@ -36,20 +38,19 @@ void Table::fixeObstacle()
         for (int j = 0; j < height; j++)
         {
             int val = 0;
-            // Gauche
-            if (i <= 102 && j >= 1175 && j <= 1325)
+            if (i <= int(102*scale/100) && j >= int(1175*scale/100) && j <= int(1325*scale/100))
             {
                 val = 1;
             }
-            if (j >= ((height - 1490) / (510)) * i + 1490)
+            if (j >= ((height - int(1490*scale/100)) / int(510*scale/100)) * i + int(1490*scale/100))
             {
                 val = 1;
             }
-            if (j <= 80 && i >= 450 && i <= 1170)
+            if (j <= int(80*scale/100) && i >= int(450*scale/100) && i <= int(1170*scale/100))
             {
                 val = 1;
             }
-            if (j <= 100 && i >= 1275 && i <= 1425)
+            if (j <= int(100*scale/100) && i >= int(1275*scale/100) && i <= int(1425*scale/100))
             {
                 val = 1;
             }
@@ -67,9 +68,9 @@ void Table::mouvObstacle()
     for (Sample *s : samples)
     {
 
-        for (int j = 0; j <= 60; j++)
+        for (int j = 0; j <= int(60*scale/100); j++)
         {
-            for (int k = 0; k <= 70; k++)
+            for (int k = 0; k <= int(70*scale/100); k++)
             {
                 int val = 2;
                 int y = s->getY() - k;
@@ -105,9 +106,9 @@ void Table::mouvObstacle()
     }
     for (Robot *r : robots)
     {
-        for (int j = 0; j <= 150; j++)
+        for (int j = 0; j <= int(150*scale/100); j++)
         {
-            for (int k = 0; k <= 150; k++)
+            for (int k = 0; k <= int(150*scale/100); k++)
             {
                 int val;
                 if (r->getTeam() == 0)
@@ -163,12 +164,16 @@ int Table::getWidth(){
     return width;
 }
 
-void Table::show()
+int Table::getScale(){
+    return scale;
+}
+
+void Table::show(int s)
 {
     mouvObstacle();
-    for (int j = 0; j < height; j += scale)
+    for (int j = 0; j < height; j += s)
     {
-        for (int i = 0; i < width; i += scale)
+        for (int i = 0; i < width; i += s)
         {
             const char *s = "";
             int val = map[j][i].getVal();
@@ -192,7 +197,7 @@ void Table::show()
             {
                 s = "\x1B[31m";
             }
-            printf("%s%i ", s, val);
+            printf("%s¤ ", s);
         }
         printf("\n");
     }
@@ -207,34 +212,3 @@ void Table::addSample(Sample *s)
 {
     samples.push_back(s);
 }
-
-/*
-int main()
-{
-    Table t(30, 2000, 3000);
-    Robot *r1 = new Robot(150, 700, 0);
-    Robot *r2 = new Robot(2840, 700, 1);
-    Sample *s1 = new Sample(900, 555, 2);
-    Sample *s2 = new Sample(830, 675, 2);
-    Sample *s3 = new Sample(900, 795, 2);
-    Sample *s4 = new Sample(870, 1270, 2);
-    Sample *s5 = new Sample(1050, 1330, 2);
-    Sample *s6 = new Sample(950, 1470, 2);
-    t.addRobot(r1);
-    t.addRobot(r2);
-    t.addSample(s1);
-    t.addSample(s3);
-    t.addSample(s4);
-    t.addSample(s5);
-    t.addSample(s6);
-    t.show();
-    delete (r1);
-    delete (r2);
-    delete (s1);
-    delete (s2);
-    delete (s3);
-    delete (s4);
-    delete (s5);
-    delete (s6);
-    return 0;
-}*/
