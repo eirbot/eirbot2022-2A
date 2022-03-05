@@ -40,6 +40,7 @@ nodeList Astar::findPath()
 {
     Node *current = start;
     current->setG(0);
+    current->setH(0);
     current->setF(current->getG() + current->getH());
     current->setPrevious(nullptr);
     open_list.push_back(current);
