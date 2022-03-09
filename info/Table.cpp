@@ -68,7 +68,7 @@ void Table::mouvObstacle()
     for (Sample *s : samples)
     {
 
-        for (int j = 0; j <= int(60*scale/100); j++)
+        for (int j = 0; j <= int(70*scale/100); j++)
         {
             for (int k = 0; k <= int(70*scale/100); k++)
             {

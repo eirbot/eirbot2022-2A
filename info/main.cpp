@@ -25,7 +25,7 @@ int main()
     start->setPrevious(start);
     nodeList end;
     end.push_back(endNode);
-    end.push_back(endNode2);
+    //end.push_back(endNode2);
     Astar astar(start, &end, &t);
     nodeList path = astar.findPath();
     astar.printList(path);

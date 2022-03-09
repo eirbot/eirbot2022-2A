@@ -3,6 +3,9 @@
 #include <math.h>
 #include <bits/stdc++.h>
 
+#define decCost = 1
+#define turnCost = 0.5
+
 Astar::Astar(Node *n, nodeList *nlist, Table *t) : start(n), end(nlist), map(t){}
 
 float Astar::distance(Node *n1, Node *n2)
