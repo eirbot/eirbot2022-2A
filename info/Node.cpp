@@ -22,6 +22,10 @@ void Node::setVal(int v){
     val = v;
 }
 
+void Node::setDir(int d){
+    direction = d;
+}
+
 void Node::setPrevious(Node* p){
     previous = p;
 }
@@ -40,6 +44,10 @@ float Node::getH() const{
 
 int Node::getVal() const{
     return val;
+}
+
+int Node::getDir() const{
+    return direction;
 }
 
 int Node::getX() const{

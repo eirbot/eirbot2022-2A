@@ -1,4 +1,3 @@
-#include "Astar.hpp"
 #include "Movement.hpp"
 
 int main()
@@ -25,15 +24,20 @@ int main()
     start->setPrevious(start);
     nodeList end;
     end.push_back(endNode);
-    //end.push_back(endNode2);
-    Astar astar(start, &end, &t);
+    end.push_back(endNode2);
+    Astar astar(start, &end, &t, 0);
     nodeList path = astar.findPath();
     astar.printList(path);
     Movement mov;
     mov.importantPoints(path);
     astar.printList(mov.getMov());
-    astar.printPath(t,&path,astar.getOpen(), astar.getClosed());
-    Robot *r1 = new Robot(path.at(path.size()-1)->getX(), path.at(path.size()-1)->getY(), 0);
+    int r = 0;
+    while(r == 0)
+    {
+       r = mov.oneStep();
+    }
+    astar.printPath(t, &path, astar.getOpen(), astar.getClosed());
+    Robot *r1 = new Robot(path.at(path.size() - 1)->getX(), path.at(path.size() - 1)->getY(), 0);
     t.addRobot(r1);
     t.mouvObstacle();
     t.show(3);

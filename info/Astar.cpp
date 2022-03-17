@@ -3,10 +3,10 @@
 #include <math.h>
 #include <bits/stdc++.h>
 
-#define decCost = 1
-#define turnCost = 0.5
+#define decCost 100
+#define turnCost 0.00001
 
-Astar::Astar(Node *n, nodeList *nlist, Table *t) : start(n), end(nlist), map(t){}
+Astar::Astar(Node *n, nodeList *nlist, Table *t, int d) : start(n), end(nlist), map(t), direction(d) {}
 
 float Astar::distance(Node *n1, Node *n2)
 {
@@ -41,11 +41,13 @@ void Astar::searchPath()
 
 nodeList Astar::findPath()
 {
+    int tmpDir = 0;
     Node *current = start;
     current->setG(0);
     current->setH(0);
     current->setF(current->getG() + current->getH());
     current->setPrevious(nullptr);
+    current->setDir(direction);
     open_list.push_back(current);
     closed_list.push_back(current);
     while (!isNodeOnList(current, *end))
@@ -57,12 +59,74 @@ nodeList Astar::findPath()
             {
                 if (!isNodeOnList(neighbor, closed_list))
                 {
+                    if (neighbor->getY() - current->getY() == -1)
+                    {
+                        if (neighbor->getX() - current->getX() == -1)
+                        {
+                            tmpDir = 7;
+                        }
+                        if (neighbor->getX() - current->getX() == 1)
+                        {
+                            tmpDir = 1;
+                        }
+                        if (neighbor->getX() - current->getX() == 0)
+                        {
+                            tmpDir = 0;
+                        }
+                    }
+                    if (neighbor->getY() - current->getY() == 1)
+                    {
+                        if (neighbor->getX() - current->getX() == -1)
+                        {
+                            tmpDir = 5;
+                        }
+                        if (neighbor->getX() - current->getX() == 1)
+                        {
+                            tmpDir = 3;
+                        }
+                        if (neighbor->getX() - current->getX() == 0)
+                        {
+                            tmpDir = 4;
+                        }
+                    }
+                    if (neighbor->getY() - current->getY() == 0)
+                    {
+                        if (neighbor->getX() - current->getX() == -1)
+                        {
+                            tmpDir = 6;
+                        }
+                        if (neighbor->getX() - current->getX() == 1)
+                        {
+                            tmpDir = 2;
+                        }
+                    }
                     float tmpG = current->getG() + distance(current, neighbor);
+                    if (direction != tmpDir)
+                    {
+                        int d = abs(direction - tmpDir);
+                        if (d > 4 && tmpDir > 4 && direction < 4)
+                        {
+                            d = abs(direction + 8 - tmpDir);
+                        }
+                        if (d > 4 && tmpDir < 4 && direction > 4)
+                        {
+                             d = abs((tmpDir + 8) - direction);
+                        }
+                        if (current == start)
+                        {
+                            tmpG = tmpG + d * turnCost;
+                        }
+                        else
+                        {
+                            tmpG = tmpG + decCost + d * turnCost;
+                        }
+                    }
                     if (isNodeOnList(neighbor, open_list))
                     {
                         int place = findPlace(neighbor, open_list);
                         if (tmpG <= open_list[place]->getG())
                         {
+                            neighbor->setDir(tmpDir);
                             neighbor->setG(tmpG);
                             neighbor->setH(minDist(neighbor, *end));
                             neighbor->setF(neighbor->getG() + neighbor->getH());
@@ -72,6 +136,7 @@ nodeList Astar::findPath()
                     }
                     else
                     {
+                        neighbor->setDir(tmpDir);
                         neighbor->setG(tmpG);
                         neighbor->setH(minDist(neighbor, *end));
                         neighbor->setF(neighbor->getG() + neighbor->getH());
@@ -86,6 +151,7 @@ nodeList Astar::findPath()
         {
             return path;
         }
+        direction = current->getDir();
         closed_list.push_back(current);
         int place = findPlace(current, open_list);
         open_list.erase(open_list.begin() + place);
@@ -104,45 +170,45 @@ nodeList Astar::findNeighbor(Node *n)
     bool left = true;
     bool up = true;
     bool down = true;
-    for (int i = -150 * scale/100; i <= 150 * scale/100; i++)
+    for (int i = -150 * scale / 100; i <= 150 * scale / 100; i++)
     {
-        if (x > 150 * scale/100)
+        if (x > 150 * scale / 100)
         {
-            if (map->nodeAt(x - 150 * scale/100 - 1, y + i)->getVal() != 0 &&
-                map->nodeAt(x - 150 * scale/100 - 1, y + i)->getVal() != 3)
+            if (map->nodeAt(x - 150 * scale / 100 - 1, y + i)->getVal() != 0 &&
+                map->nodeAt(x - 150 * scale / 100 - 1, y + i)->getVal() != 3)
             {
                 left = false;
             }
         }
-        if (x < map->getWidth() - 150 * scale/100 - 1)
+        if (x < map->getWidth() - 150 * scale / 100 - 1)
         {
-            if (map->nodeAt(x + 150 * scale/100 + 1, y + i)->getVal() != 0 &&
-                map->nodeAt(x + 150 * scale/100 + 1, y + i)->getVal() != 3)
+            if (map->nodeAt(x + 150 * scale / 100 + 1, y + i)->getVal() != 0 &&
+                map->nodeAt(x + 150 * scale / 100 + 1, y + i)->getVal() != 3)
             {
                 right = false;
             }
         }
-        if (y > 150 * scale/100)
+        if (y > 150 * scale / 100)
         {
-            if (map->nodeAt(x + i, y - 150 * scale/100 - 1)->getVal() != 0 &&
-                map->nodeAt(x + i, y - 150 * scale/100 - 1)->getVal() != 3)
+            if (map->nodeAt(x + i, y - 150 * scale / 100 - 1)->getVal() != 0 &&
+                map->nodeAt(x + i, y - 150 * scale / 100 - 1)->getVal() != 3)
             {
                 up = false;
             }
         }
-        if (y < map->getHeight() - 150 * scale/100 - 1)
+        if (y < map->getHeight() - 150 * scale / 100 - 1)
         {
-            if (map->nodeAt(x + i, y + 150 * scale/100 + 1)->getVal() != 0 &&
-                map->nodeAt(x + i, y - 150 * scale/100 + 1)->getVal() != 3)
+            if (map->nodeAt(x + i, y + 150 * scale / 100 + 1)->getVal() != 0 &&
+                map->nodeAt(x + i, y - 150 * scale / 100 + 1)->getVal() != 3)
             {
                 down = false;
             }
         }
     }
-    left = left && x > 150 * scale/100;
-    right = right && x < map->getWidth() - 150 * scale/100 - 1;
-    up = up && y > 150 * scale/100;
-    down = down && y < map->getHeight() - 150 * scale/100 - 1;
+    left = left && x > 150 * scale / 100;
+    right = right && x < map->getWidth() - 150 * scale / 100 - 1;
+    up = up && y > 150 * scale / 100;
+    down = down && y < map->getHeight() - 150 * scale / 100 - 1;
 
     if (left)
     {
@@ -283,7 +349,7 @@ void Astar::printList(nodeList l)
 {
     for (Node *n : l)
     {
-        printf("x : %i, y : %i\n", n->getX(), n->getY());
+        printf("x : %i, y : %i, angle : %i, g : %f, h : %f\n", n->getX(), n->getY(), n->getDir(), n->getG(), n->getH());
     }
     printf("\n");
 }

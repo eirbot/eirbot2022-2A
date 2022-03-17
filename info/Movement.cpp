@@ -1,4 +1,6 @@
 #include "Movement.hpp"
+#include "Astar.hpp"
+#include <math.h>
 
 void Movement::importantPoints(nodeList l)
 {
@@ -24,4 +26,20 @@ void Movement::importantPoints(nodeList l)
 nodeList Movement::getMov()
 {
     return movDescription;
+}
+
+int Movement::oneStep(){
+    if(step > int(movDescription.size())-1){
+        return 1;
+    }
+    else{
+        dist = Astar::distance(movDescription.at(step - 1), movDescription.at(step));
+        int angle = movDescription.at(step)->getDir()*45;  
+        angleR = angle - angleA;
+        angleA = angle;
+        printf("dist: %f, angle: %i\n",dist, angleR);
+        //appel de la fonction plus bas niveau mov(dist, angleR)
+        step++;
+    }
+    return 0;
 }

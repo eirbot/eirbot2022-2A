@@ -12,14 +12,15 @@ class Astar{
     Node *start;
     nodeList * end;
     Table *map;
+    int direction;
     public:
     nodeList open_list;
     nodeList closed_list;
     nodeList path;
-    Astar(Node*, nodeList *, Table* );
+    Astar(Node *, nodeList *, Table *, int );
     ~Astar();
-    float distance(Node *, Node *);
-    float minDist(Node *, nodeList &);
+    static float distance(Node *, Node *);
+    static float minDist(Node *, nodeList &);
     void searchPath();
     nodeList findPath();
     nodeList findNeighbor(Node*);
