@@ -28,17 +28,37 @@ nodeList Movement::getMov()
     return movDescription;
 }
 
-int Movement::oneStep(){
-    if(step > int(movDescription.size())-1){
+int Movement::oneStep()
+{
+    if (step > int(movDescription.size()) - 1)
+    {
         return 1;
     }
-    else{
+    else
+    {
         dist = Astar::distance(movDescription.at(step - 1), movDescription.at(step));
-        int angle = movDescription.at(step)->getDir()*45;  
+        int angle = - movDescription.at(step)->getDir() * 45;
         angleR = angle - angleA;
         angleA = angle;
-        printf("dist: %f, angle: %i\n",dist, angleR);
-        //appel de la fonction plus bas niveau mov(dist, angleR)
+        if (dist > 3)
+        {
+            printf("dist: %f, angle: %i\n", dist, angleR);
+            // appel de la fonction plus bas niveau mov(dist, angleR)
+        }
+        else
+        {
+            if (pass || step == int(movDescription.size()) - 1)
+            {
+                printf("dist: %f, angle: %i\n", dist, angleR);
+                // appel de la fonction plus bas niveau mov(dist, angleR)
+            }
+            else
+            {
+                movDescription.erase(movDescription.begin() + step);
+                step--;
+            }
+            pass = (pass + 1) % 2;
+        }
         step++;
     }
     return 0;

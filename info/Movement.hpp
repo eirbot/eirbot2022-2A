@@ -2,6 +2,7 @@
 
 class Movement{
     nodeList movDescription;
+    int pass = 0;
     int step = 1;
     float dist = 0;
     int angleR = 0;

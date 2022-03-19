@@ -3,8 +3,7 @@
 #include <math.h>
 #include <bits/stdc++.h>
 
-#define decCost 100
-#define turnCost 0.00001
+#define turnCost 0.2
 
 Astar::Astar(Node *n, nodeList *nlist, Table *t, int d) : start(n), end(nlist), map(t), direction(d) {}
 
@@ -103,22 +102,13 @@ nodeList Astar::findPath()
                     float tmpG = current->getG() + distance(current, neighbor);
                     if (direction != tmpDir)
                     {
-                        int d = abs(direction - tmpDir);
-                        if (d > 4 && tmpDir > 4 && direction < 4)
-                        {
-                            d = abs(direction + 8 - tmpDir);
-                        }
-                        if (d > 4 && tmpDir < 4 && direction > 4)
-                        {
-                             d = abs((tmpDir + 8) - direction);
-                        }
                         if (current == start)
                         {
-                            tmpG = tmpG + d * turnCost;
+                            tmpG = tmpG;
                         }
                         else
                         {
-                            tmpG = tmpG + decCost + d * turnCost;
+                            tmpG = tmpG + turnCost;
                         }
                     }
                     if (isNodeOnList(neighbor, open_list))
