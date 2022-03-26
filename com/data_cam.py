@@ -1,5 +1,6 @@
 import numpy as np
 
+#Genere des coord aleatoires sous forme d un tableau [x,y]
 def EnvoiCoord():
     A = np.zeros(2, dtype=int)
     A[0] = np.trunc(np.random.rand(1)*512)

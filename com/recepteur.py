@@ -20,8 +20,11 @@ def ReceptionCoord(str):
     str4 = str3[3]
     str5 = str4.split(",")
     str6 = np.hstack([binConv(int(str5[0]),9),binConv(int(str5[1]), 9)])
+    # str7 = np.hstack([int(str5[0]),int(str5[1])])
     if(str3[1] == 'robot'):
         print("c est un robot")
+    elif(str3[1] == 'objet'):
+        print("c est un objet")
     return np.array2string(str6)
 
 app = Flask(__name__)
@@ -34,10 +37,17 @@ def index():
 def pos_robot():
     if request.method=='GET':
         args = request.args
-        print("DATA")
-        print(args)
         position = ReceptionCoord(str(args))
-        return position
+        print(position)
+        return "position " #ce qui est affiche dans la console de l emetteur, a remplacer par position
+
+@app.route('/pos_objet', methods=['GET','POST'])
+def pos_objet():
+    if request.method=='GET':
+        args = request.args
+        obj = ReceptionCoord(str(args))
+        print(obj)
+        return "obj " #ce qui est affiche dans la console de l emetteur, a remplacer par obj
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8108, host='0.0.0.0')
+    app.run(debug=True, port=8109, host='0.0.0.0')
