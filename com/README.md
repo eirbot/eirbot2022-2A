@@ -8,10 +8,10 @@ Contenu :
 
 
 Utilisation : 
-- Ouvrir 2 terminaux et aller dans le bon répertoire
+- Ouvrir 2 terminaux et aller dans le bon répertoire.
 - Rendre les fichiers [emetteur.sh] et [recepteur.sh] exécutables  avec la commande `chmod +x nom_fichier.sh`.
 - Avec un premier terminal, lancer le récepteur avec la commande `./recepteur.sh`. Le site est désormais actif et est prêt à recevoir les données
-- Avec un second terminal, modifier le fichier [emetteur.sh] avec la commande `nano emetteur.sh` par exemple. Il faut modifier dans la commande  `curl "$ip:$port/pos_robot?robot=$data"` les variables `$ip` pour écrire manuellement l'ip de la rasp et aussi veiller à ce que le numéro de port est le même que celui qui est activé pour le site. On le trouve dans le terminal lorsque l'on exécute recepteur.sh à la ligne suivante : 
+- Avec un second terminal, modifier le fichier [emetteur.sh] avec la commande `nano emetteur.sh` par exemple. Il faut modifier dans la commande  `curl "$ip:$port/pos_robot?robot=$data"` les variables `$ip` pour écrire manuellement l'ip de la rasp et aussi veiller à ce que le numéro de port `$port` soit le même que celui qui est activé pour le site. On le trouve dans le terminal lorsque l'on exécute [recepteur.sh] à la ligne suivante : 
 ```sh
  * Running on http://172.26.51.8:8109/ # ip = 172.26.51.8 et port = 8109
 ```
