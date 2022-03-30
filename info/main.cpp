@@ -34,7 +34,7 @@ int main()
     printf("%f\n", temps);
     t1 = clock();
     Node *start = t.nodeAt(15, 15);
-    Node *endNode = t.nodeAt(283, 16);
+    Node *endNode = t.nodeAt(110, 80);
     Node *endNode2 = t.nodeAt(115, 95);
     //start->setPrevious(start);
     nodeList end;
@@ -54,11 +54,11 @@ int main()
     {
        r = mov.oneStep();
     }
-    //astar.printPath(t, &path, astar.getOpen(), astar.getClosed());
+    astar.printPath(t, &path, astar.getOpen(), astar.getClosed());
     Robot *r1 = new Robot(path.at(path.size() - 1)->getX(), path.at(path.size() - 1)->getY(), 0);
     t.addRobot(r1);
     t.mouvObstacle();
-    //t.show(3);
+    t.show(3);
     delete (r1);
     delete (r2);
     delete (s1);
