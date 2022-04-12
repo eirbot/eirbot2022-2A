@@ -3,7 +3,7 @@
 #include <math.h>
 #include <bits/stdc++.h>
 
-#define turnCost 0.2
+#define turnCost 0
 
 Astar::Astar(Node *n, nodeList *nlist, Table *t, int d) : start(n), end(nlist), map(t), direction(d) {}
 
@@ -38,7 +38,7 @@ void Astar::searchPath()
     std::reverse(path.begin(), path.end());
 }
 
-nodeList Astar::findPath()
+nodeList Astar::findPath(bool blocked)
 {
     int tmpDir = 0;
     Node *current = start;
@@ -49,9 +49,33 @@ nodeList Astar::findPath()
     current->setDir(direction);
     open_list.push_back(current);
     closed_list.push_back(current);
+
+    bool obs = false;
+    std::vector<int> values;
+    values.push_back(0);
+    values.push_back(3);
+    if (blocked)
+    {
+        values.push_back(2);
+    }
+
+    for (Node *n : *end)
+    {
+        if (valueIn(n, values))
+        {
+            obs = true;
+        }
+    }
+
+    if (!obs)
+    {
+        searchPath();
+        return path;
+    }
+
     while (!isNodeOnList(current, *end))
     {
-        nodeList neighbors = findNeighbor(current);
+        nodeList neighbors = findNeighbor(current, values);
         for (Node *neighbor : neighbors)
         {
             if (neighbor != nullptr)
@@ -150,7 +174,7 @@ nodeList Astar::findPath()
     return path;
 }
 
-nodeList Astar::findNeighbor(Node *n)
+nodeList Astar::findNeighbor(Node *n, std::vector<int> values)
 {
     nodeList neighbor;
     int x = n->getX();
@@ -164,32 +188,28 @@ nodeList Astar::findNeighbor(Node *n)
     {
         if (x > 150 * scale / 100)
         {
-            if (map->nodeAt(x - 150 * scale / 100 - 1, y + i)->getVal() != 0 &&
-                map->nodeAt(x - 150 * scale / 100 - 1, y + i)->getVal() != 3)
+            if (!valueIn(map->nodeAt(x - 150 * scale / 100 - 1, y + i), values))
             {
                 left = false;
             }
         }
         if (x < map->getWidth() - 150 * scale / 100 - 1)
         {
-            if (map->nodeAt(x + 150 * scale / 100 + 1, y + i)->getVal() != 0 &&
-                map->nodeAt(x + 150 * scale / 100 + 1, y + i)->getVal() != 3)
+            if (!valueIn(map->nodeAt(x + 150 * scale / 100 + 1, y + i), values))
             {
                 right = false;
             }
         }
         if (y > 150 * scale / 100)
         {
-            if (map->nodeAt(x + i, y - 150 * scale / 100 - 1)->getVal() != 0 &&
-                map->nodeAt(x + i, y - 150 * scale / 100 - 1)->getVal() != 3)
+            if (!valueIn(map->nodeAt(x + i, y - 150 * scale / 100 - 1), values))
             {
                 up = false;
             }
         }
         if (y < map->getHeight() - 150 * scale / 100 - 1)
         {
-            if (map->nodeAt(x + i, y + 150 * scale / 100 + 1)->getVal() != 0 &&
-                map->nodeAt(x + i, y - 150 * scale / 100 + 1)->getVal() != 3)
+            if (!valueIn(map->nodeAt(x + i, y + 150 * scale / 100 + 1), values))
             {
                 down = false;
             }
@@ -342,4 +362,17 @@ void Astar::printList(nodeList l)
         printf("x : %i, y : %i, angle : %i, g : %f, h : %f\n", n->getX(), n->getY(), n->getDir(), n->getG(), n->getH());
     }
     printf("\n");
+}
+
+bool Astar::valueIn(Node *n, std::vector<int> values)
+{
+    bool b = false;
+    for (size_t i = 0; i < values.size(); i++)
+    {
+        if (n->getVal() == values.at(i))
+        {
+            b = true;
+        }
+    }
+    return b;
 }
