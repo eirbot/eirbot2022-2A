@@ -2,9 +2,9 @@
 
 Contenu : 
 - [data_cam.py] : Génère des données aléatoires. A terme, enverra la position détectée avec la caméra.
-- [server.py] : Le script qui permet de générer le site avec Flask. Si besoin, modifier le numéro de port à la dernière ligne du programme.
-- [emetteur.sh] : Le script à exécuter pour émettre les données.
-- [camera.sh] : Le script à exécuter pour recevoir les données.
+- [server.py] : Le script à exécuter qui permet de générer le site avec Flask. Si besoin, modifier le numéro de port à la dernière ligne du programme.
+- [emetteur.sh] : Le script à exécuter pour envoyer les demandes de position.
+- [camera.sh] : Le script qui permet d'envoyer les positions.
 
 
 Utilisation : 
@@ -23,6 +23,6 @@ Une fois que cela est fait, des données sont échangées périodiquement entre 
 Cela ne sert à rien d'ouvrir le site sur le navigateur, l'échange s'effectue correctement avec les terminaux.
 
 [data_cam.py]: <https://github.com/eirbot/eirbot2022-2A/blob/main/com/data_cam.py>
-[recepteur.py]: <https://github.com/eirbot/eirbot2022-2A/blob/main/com/server.py>
+[server.py]: <https://github.com/eirbot/eirbot2022-2A/blob/main/com/server.py>
    [emetteur.sh]: <https://github.com/eirbot/eirbot2022-2A/blob/main/com/emetteur.sh>
    [camera.sh]: <https://github.com/eirbot/eirbot2022-2A/blob/main/com/camera.sh>
