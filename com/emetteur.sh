@@ -8,10 +8,7 @@ port=8109   #port a ecrire a la main, celui de la derniere ligne de server.py
 while [ 1 ]
 do
     
-    data="GET_ROBOT" #histoire de mettre un truc
-
-    #ecrire l'ip de la rasp de la cam a la main
-    curl "$ip:$port/pos_robot?robot=$data"
+    python3 /mnt/c/Users/elias/Desktop/eirbot2022-2A/com/robot.py $ip $port
 
     sleep 2 #data toutes les 3 sec
 done

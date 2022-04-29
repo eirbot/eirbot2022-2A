@@ -41,18 +41,18 @@ def index():
 def pos_robot():
     if request.method=='GET':
         position = data_cam.EnvoiCoord()
-        script = "./camera.sh"
-        command = "{} {}".format(script, str(position))
-        subprocess.call(shlex.split(command)) #va executer le "script" avec en arg "position"
-
-        return str(position) #ce qui est affiche dans la console de l emetteur, a remplacer par position
+        #script = "./camera.sh"
+        #command = "{} {}".format(script, str(position))
+        #subprocess.call(shlex.split(command)) #va executer le "script" avec en arg "position"
+        
+        return str(position), 200 #ce qui est affiche dans la console de l emetteur, a remplacer par position
 
 #ancienne version
 @app.route('/pos_objet', methods=['GET','POST'])
 def pos_objet():
     if request.method=='GET':
 
-        return "ca marche" #ce qui est affiche dans la console de l emetteur, a remplacer par obj
+        return "ca marche", 200 #ce qui est affiche dans la console de l emetteur, a remplacer par obj
 
 if __name__ == '__main__':
     app.run(debug=True, port=8109, host='0.0.0.0')
