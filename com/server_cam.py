@@ -1,8 +1,7 @@
 from flask import Flask, request
 import numpy as np
 import data_cam
-import subprocess
-import shlex
+
 
 
 #Convertit un entier 'int' en un tableau de bit de taille 'length'
@@ -33,26 +32,24 @@ def ReceptionCoord(str):
 
 app = Flask(__name__)
 
+#page d accueil car il en faut une 
 @app.route('/')
 def index():
     return 'elias la menace'
 
+#page qui va envoyer les coordonnees calculees par la cam au robot
 @app.route('/pos_robot', methods=['GET','POST'])
 def pos_robot():
     if request.method=='GET':
         position = data_cam.EnvoiCoord()
-        #script = "./camera.sh"
-        #command = "{} {}".format(script, str(position))
-        #subprocess.call(shlex.split(command)) #va executer le "script" avec en arg "position"
-        
-        return str(position), 200 #ce qui est affiche dans la console de l emetteur, a remplacer par position
+        return str(position), 200 #ce qui est affiche dans la console de l emetteur (robot)
 
-#ancienne version
+#a update pour les objets aussi
 @app.route('/pos_objet', methods=['GET','POST'])
 def pos_objet():
     if request.method=='GET':
 
-        return "ca marche", 200 #ce qui est affiche dans la console de l emetteur, a remplacer par obj
+        return "ca marche", 200 #ce qui est affiche dans la console de l emetteur (robot)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8109, host='0.0.0.0')

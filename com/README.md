@@ -15,6 +15,7 @@ Utilisation :
 ```sh
  * Running on http://172.26.51.8:8109/ # ip = 172.26.51.8 et port = 8109
 ```
+Ne pas oublier de changer le path du programme python !!!
 - Une fois les modifications effectuées, exécuter le script du robot ([script_robot.sh]).
 
 Une fois que cela est fait, des données sont échangées périodiquement entre les machines. Les données reçues sont des chaînes de caractères qui sont transformés en tableau dans [robot.py].
