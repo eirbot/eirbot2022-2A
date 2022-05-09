@@ -31,9 +31,9 @@ class RobotManager:
             print("Initializing GPIO")
             return True
 
-    def move(self, x, y, theta=None):
+    def move(self, dist, theta=None):
         if self.simulation:
-            print("Moving to: x={}, y={}, theta={}".format(x, y, theta))
+            print("Moving to distance: {}, angle: {}".format(dist, theta))
             return True
 
     def go_angle(self, theta):
