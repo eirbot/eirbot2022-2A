@@ -46,11 +46,6 @@ class RobotManager:
             print("Buldozer: {}".format(move))
             return True
 
-    def arm(self, move="home"):
-        if self.simulation:
-            print("Moving arm to the {} position".format(move))
-            return True
-
     def suc(self, state: bool = True):
         if self.simulation:
             print("Suc: {}".format(state))
