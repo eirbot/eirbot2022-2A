@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 import serial
 
-from . import arm_manager
+import arm_manager
 
 
 class RobotManager:
