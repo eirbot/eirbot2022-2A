@@ -24,7 +24,7 @@ class RobotManager:
                                      }
         self.start: bool = False
         self.side: str = "BLUE"
-        self.arm: arm_manager.ArmManager = arm_manager.ArmManager()
+        self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
 
     def initialize_gpio(self):
         if self.simulation:
