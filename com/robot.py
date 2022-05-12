@@ -2,9 +2,15 @@ import sys
 import requests
 
 #va envoyer une requete http a l adresse ci dessous et la valeur de retour 
-#sera celle de la page pos_robot (server_cam.py ligne 45)
-response = requests.get('http://'+sys.argv[1]+':'+sys.argv[2]+'/pos_robot')
-#print(response.text)
+#sera celle de la page pos_robot (server_cam.py ligne 47)
+if(int(sys.argv[1]) == 0):
+    response = requests.get('http://'+sys.argv[2]+':'+sys.argv[3]+'/pos_robot')
+    #print(response.text)
+    
+    str1 = response.text.split(",")
+    pos_fin = [int(str1[0]), int(str1[1])]
+    print("robot")
+#sortie = tableau 1x2 avec les (x,y) du robot
 
 if(int(sys.argv[1]) == 1):
     response = requests.get('http://'+sys.argv[2]+':'+sys.argv[3]+'/pos_objet')
@@ -19,4 +25,3 @@ if(int(sys.argv[1]) == 1):
 #prendre le plus proche par exemple et éliminer les autres
 
 print(pos_fin)
-
