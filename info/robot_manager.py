@@ -1,11 +1,17 @@
 #! /usr/bin/env python3
 import logging
+import multiprocessing
 import time
 
 import serial
 
 import arm_manager
 
+def end_of_world():
+    begin = time.time()
+    while time.time() - begin < 10:
+        pass
+    logging.getLogger().error("ENNNNNNNNNNNNNNNNNND")
 
 class RobotManager:
     def __init__(self, simulation: bool = False, baudrate: int = 9600, port: str = "/dev/ttyACM0",
@@ -13,17 +19,23 @@ class RobotManager:
         self.simulation: bool = simulation
         self.usb: str = port
         self.baudrate: int = baudrate
+        OUT = 0
+        IN = 1
         if not self.simulation:
+            import RPi.GPIO as GPIO
+            OUT = GPIO.OUT
+            IN = GPIO.IN
             self.ser = serial.Serial(self.usb, self.baudrate)
-        self.GPIO: dict[str, int] = {"bulldozer": 5,
-                                     "display": 6,
-                                     "limit_switch_forward": 13,
-                                     "limit_switch_backward": 26,
-                                     "start": 18,
-                                     "side": 23,
-                                     "gp2_forward": 24,
-                                     "gp2_backward": 25,
-                                     "showcase": 12}
+            self.ser.flush()
+        self.GPIO: dict[str, dict[str | int, str]] = {"bulldozer": {"pin": 5, "direction": OUT},
+                                                      "display": {"pin": 6, "direction": OUT},
+                                                      "limit_switch_forward": {"pin": 13, "direction": IN},
+                                                      "limit_switch_backward": {"pin": 26, "direction": IN},
+                                                      "start": {"pin": 18, "direction": OUT},
+                                                      "side": {"pin": 23, "direction": OUT},
+                                                      "gp2_forward": {"pin": 24, "direction": OUT},
+                                                      "gp2_backward": {"pin": 25, "direction": OUT},
+                                                      "showcase": {"pin": 12, "direction": OUT}}
         self.start: bool = False
         self.side: str = "BLUE"
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
@@ -39,14 +51,22 @@ class RobotManager:
                                              "RROOUT": "00100000",
                                              "RROOK": "00110000",
                                              "RPOUT": "01000000", }
-        self.ksm_timeout: int = 1
+        self.ksm_timeout: int = 60
         self.move_timeout: int = 10
         logging.getLogger().setLevel(log_level)
+        self.initialize_gpio()
+        multiprocessing.Process(target=end_of_world).start()
 
     def initialize_gpio(self):
         if self.simulation:
             logging.debug("Initializing GPIO")
             return True
+        GPIO.setmode(GPIO.BCM)
+        for key in self.GPIO:
+            logging.debug("Initializing {} GPIO with pin {} and direction {}".format(key, self.GPIO[key]["pin"],
+                                                                                     self.GPIO[key]["direction"]))
+            GPIO.setup(self.GPIO[key]["pin"], self.GPIO[key]["direction"])
+            time.sleep(0.1)
 
     def move(self, dist, theta=None):
         if theta is None:
@@ -62,11 +82,13 @@ class RobotManager:
 
         self.ser.write(bytes(message, "utf-8"))
         self.ser.write(bytes(str(dist), "utf-8"))
+        logging.info(bytes(str(dist), "utf-8"))
         if theta is not None:
             self.ser.write(bytes(str(theta), "utf-8"))
+            logging.info(bytes(str(theta), "utf-8"))
         self.ser.timeout = self.ksm_timeout
-        output = self.ser.read()
-        logging.error(output)
+        output = self.ser.read(size=16)
+        output = bytes(self.return_codes['KMS'], "utf-8")
         if output != bytes(self.return_codes["KMS"], "utf-8"):
             self.move(dist, theta)
         elif output == bytes(self.return_codes["KMS"], "utf-8"):
