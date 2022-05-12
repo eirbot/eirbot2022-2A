@@ -3,6 +3,7 @@ import logging
 import multiprocessing
 import time
 
+import requests
 import serial
 
 import arm_manager
@@ -12,12 +13,12 @@ def end_of_world():
     begin = time.time()
     while time.time() - begin < 80:
         pass
-    logging.getLogger().error("ENNNNNNNNNNNNNNNNNND")
+    logging.getLogger().error("END")
 
 
 class RobotManager:
     def __init__(self, simulation: bool = False, baudrate: int = 9600, port: str = "/dev/ttyACM0",
-                 log_level: int = logging.INFO):
+                 log_level: int = logging.INFO, camera_url: str = "http://0.0.0.0"):
         self.simulation: bool = simulation
         self.usb: str = port
         self.baudrate: int = baudrate
@@ -33,10 +34,10 @@ class RobotManager:
                                                       "display": {"pin": 6, "direction": OUT},
                                                       "limit_switch_forward": {"pin": 13, "direction": IN},
                                                       "limit_switch_backward": {"pin": 26, "direction": IN},
-                                                      "start": {"pin": 18, "direction": OUT},
-                                                      "side": {"pin": 23, "direction": OUT},
-                                                      "gp2_forward": {"pin": 24, "direction": OUT},
-                                                      "gp2_backward": {"pin": 25, "direction": OUT},
+                                                      "start": {"pin": 18, "direction": IN},
+                                                      "side": {"pin": 23, "direction": IN},
+                                                      "gp2_forward": {"pin": 24, "direction": IN},
+                                                      "gp2_backward": {"pin": 25, "direction": IN},
                                                       "showcase": {"pin": 12, "direction": OUT}}
         self.start: bool = False
         self.side: str = "BLUE"
@@ -56,6 +57,7 @@ class RobotManager:
         self.ksm_timeout: int = 1
         self.move_timeout: int = 10
         logging.getLogger().setLevel(log_level)
+        self.camera_url: str = camera_url
         self.initialize_gpio()
         multiprocessing.Process(target=end_of_world).start()
 
@@ -79,6 +81,7 @@ class RobotManager:
                                                                                      self.GPIO[key]["direction"]))
             GPIO.setup(self.GPIO[key]["pin"], self.GPIO[key]["direction"])
             time.sleep(0.1)
+        self.side = "BLUE" if GPIO.input(self.GPIO["side"]["pin"]) else "YELLOW"
 
     def move(self, dist, theta=None):
         if theta is None:
@@ -178,3 +181,15 @@ class RobotManager:
         if self.simulation:
             logging.debug("Showing showcase")
             return True
+
+    def get_position(self):
+        logging.error("Getting position from url: {}".format(self.camera_url))
+        position = requests.get(self.camera_url + "/pos_robot").text
+        return position
+
+    def wait_until_start(self):
+        import RPi.GPIO as GPIO
+        while GPIO.input(self.GPIO["start"]["pin"]) != 1:
+            time.sleep(0.1)
+        logging.error("Started")
+        return True
