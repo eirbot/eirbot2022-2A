@@ -42,14 +42,22 @@ def index():
 def pos_robot():
     if request.method=='GET':
         position = data_cam.EnvoiCoord()
+        #remplacer par la fonction qui renvoie la position du robot
+
         return str(position), 200 #ce qui est affiche dans la console de l emetteur (robot)
 
-#a update pour les objets aussi
+#envoi des coordonnees des objets
 @app.route('/pos_objet', methods=['GET','POST'])
 def pos_objet():
     if request.method=='GET':
+        position1 = data_cam.EnvoiCoord()
+        position2 = data_cam.EnvoiCoord()
+        position3 = data_cam.EnvoiCoord()
+         #remplacer par la fonction qui renvoie la position des objets
 
-        return "ca marche", 200 #ce qui est affiche dans la console de l emetteur (robot)
+        pos = position1 + ',' + position2 + ',' + position3 #concatene les string
+
+        return str(pos),200 #ce qui est affiche dans la console de l emetteur (robot)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8109, host='0.0.0.0')
