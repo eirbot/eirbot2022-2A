@@ -25,3 +25,4 @@ if(int(sys.argv[1]) == 1):
 #prendre le plus proche par exemple et éliminer les autres
 
 print(pos_fin)
+
