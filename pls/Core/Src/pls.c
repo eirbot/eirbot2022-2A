@@ -51,6 +51,8 @@ uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
   else {
 	  //flush serial buffer
 	  __HAL_UART_FLUSH_DRREGISTER(&huart2);
+
+	  send_byte(ERROR);
 	  return 0xFF;
   }
 }

@@ -111,7 +111,7 @@ int main(void)
 	  switch(id) {
 	      case 0xFF:
 	    	  // parsing error
-	    	  send_byte(ERROR);
+	    	  // do nothing...
 	    	  break;
 
 	      case PLS_RESET:
@@ -125,7 +125,9 @@ int main(void)
 			  //maj asserv
 
 			  //if everything is ok
-			  send_byte(KMS);
+			  send_byte(RPOOK);
+			  //else
+			  //send_byte(ROUT)
 			  break;
 
 		  case SRO:
@@ -134,21 +136,19 @@ int main(void)
 			  //maj asserv
 
 			  //if everything is ok
-			  send_byte(KMS);
+			  send_byte(RROOK);
+			  //else
+			  //send_byte(ROUT)
 			  break;
 
 		  case SVI:
 			  //maj asserv
 
-			  //if everything is ok
-			  send_byte(KMS);
 			  break;
 
 		  case STOP:
 			  //maj asserv
 
-			  //if everything is ok
-			  send_byte(KMS);
 			  break;
 	  }
   }
