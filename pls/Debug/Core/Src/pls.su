@@ -1,0 +1,2 @@
+pls.c:16:6:send_byte	16	static
+pls.c:20:9:wait_cmd	24	static
