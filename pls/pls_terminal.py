@@ -53,7 +53,7 @@ def main():
             ope = splited.pop(0)
             param = list(map(int, splited))
 
-            send_cmd(operation[ope.upper()], type["int_32"], param)
+            send_cmd(operation[ope.upper()], type["int_16"], param)
 
             answer = ser.read()[0]
             for ret_code in return_codes:
