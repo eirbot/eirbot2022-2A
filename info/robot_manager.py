@@ -26,9 +26,9 @@ class RobotManager:
         OUT = 0
         IN = 1
         if not self.simulation:
-            import RPi.GPIO as GPIO
-            OUT = GPIO.OUT
-            IN = GPIO.IN
+            # import RPi.GPIO as GPIO
+            # OUT = GPIO.OUT
+            # IN = GPIO.IN
             self.ser = serial.Serial(self.usb, self.baudrate)
         self.GPIO: dict[str, dict[str | int, str]] = {"bulldozer": {"pin": 5, "direction": OUT},
                                                       "display": {"pin": 6, "direction": OUT},
@@ -58,12 +58,12 @@ class RobotManager:
                                              "RPOUT": b'\x04',
                                              "PLS": b'\x05', }
 
-        self.kms_timeout: float = 0.1
+        self.kms_timeout: float = 1
         self.move_timeout: int = 10
         logging.getLogger().setLevel(log_level)
         self.camera_url: str = camera_url
-        self.initialize_gpio()
-        multiprocessing.Process(target=end_of_world).start()
+        # self.initialize_gpio()
+        # multiprocessing.Process(target=end_of_world).start()
 
     def serial_read(self):
         data = self.ser.read()
@@ -75,11 +75,11 @@ class RobotManager:
         data = []
 
         for param in param_array:
-            if int_type == type["int_16"]:
+            if int_type == self.type["int_16"]:
                 if param < -32768 or param > 32767:
                     raise ValueError
                 data += struct.pack("!h", param)
-            elif int_type == type["int_32"]:
+            elif int_type == self.type["int_32"]:
                 if param < -2147483648 or param > 2147483647:
                     raise ValueError
                 data += struct.pack("!i", param)
@@ -102,15 +102,11 @@ class RobotManager:
             time.sleep(0.1)
         self.side = "BLUE" if GPIO.input(self.GPIO["side"]["pin"]) else "YELLOW"
 
-    def move(self, dist, theta=None):
+    def move(self, dist, theta=0):
         if self.simulation:
             logging.debug("Moving to distance: {}, angle: {}".format(dist, theta))
             return True
-
-        if theta is not None:
-            self.serial_write(self.operation["SPO"], self.type["int_16"], [dist, theta])
-        else:
-            self.serial_write(self.operation["SPO"], self.type["int_16"], [dist])
+        self.serial_write(self.operation["SPO"], self.type["int_16"], [int(dist), int(theta)])
 
         self.ser.timeout = self.kms_timeout
         output = self.serial_read()
