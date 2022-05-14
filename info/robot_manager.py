@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import logging
 import multiprocessing
+import struct
 import time
 
 import requests
@@ -17,7 +18,7 @@ def end_of_world():
 
 
 class RobotManager:
-    def __init__(self, simulation: bool = False, baudrate: int = 9600, port: str = "/dev/ttyACM0",
+    def __init__(self, simulation: bool = False, baudrate: int = 115200, port: str = "/dev/ttyACM0",
                  log_level: int = logging.INFO, camera_url: str = "http://0.0.0.0"):
         self.simulation: bool = simulation
         self.usb: str = port
@@ -29,7 +30,6 @@ class RobotManager:
             OUT = GPIO.OUT
             IN = GPIO.IN
             self.ser = serial.Serial(self.usb, self.baudrate)
-            self.ser.flush()
         self.GPIO: dict[str, dict[str | int, str]] = {"bulldozer": {"pin": 5, "direction": OUT},
                                                       "display": {"pin": 6, "direction": OUT},
                                                       "limit_switch_forward": {"pin": 13, "direction": IN},
@@ -42,19 +42,23 @@ class RobotManager:
         self.start: bool = False
         self.side: str = "BLUE"
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
-        self.operation: dict[str, bin] = {"SPO": "0010",
-                                          "RESET": "0100",
-                                          "SRO": "1000",
-                                          "SVI": "1010",
-                                          "STOP": "1100"}
-        self.type: dict[str, bin] = {"int_16": "0",
-                                     "int_32": "1"}
-        self.return_codes: dict[str, bin] = {"KMS": "\x00",
-                                             "RPOOK": "\x10",
-                                             "RROOUT": "\x20",
-                                             "RROOK": "\x30",
-                                             "RPOUT": "\x40", }
-        self.ksm_timeout: int = 1
+        self.operation: dict[str, bin] = {"SPO": 1,
+                                          "RESET": 2,
+                                          "SRO": 4,
+                                          "SVI": 5,
+                                          "STOP": 6}
+
+        self.type: dict[str, bin] = {"int_16": 0,
+                                     "int_32": 1}
+
+        self.return_codes: dict[str, bin] = {"KMS": b'\x00',
+                                             "RPOOK": b'\x01',
+                                             "RROOUT": b'\x02',
+                                             "RROOK": b'\x03',
+                                             "RPOUT": b'\x04',
+                                             "PLS": b'\x05', }
+
+        self.kms_timeout: float = 0.1
         self.move_timeout: int = 10
         logging.getLogger().setLevel(log_level)
         self.camera_url: str = camera_url
@@ -66,9 +70,24 @@ class RobotManager:
         logging.info("Reading from serial: {}".format(data))
         return data
 
-    def serial_write(self, data: bytes):
-        logging.info("Writing to serial: {}".format(data))
-        self.ser.write(data)
+    def serial_write(self, op, int_type, param_array):
+        header = op << 4 | int_type << 3 | len(param_array)
+        data = []
+
+        for param in param_array:
+            if int_type == type["int_16"]:
+                if param < -32768 or param > 32767:
+                    raise ValueError
+                data += struct.pack("!h", param)
+            elif int_type == type["int_32"]:
+                if param < -2147483648 or param > 2147483647:
+                    raise ValueError
+                data += struct.pack("!i", param)
+
+        cmd = [header] + data
+        logging.info("Writing to serial: {}".format(cmd))
+
+        self.ser.write(cmd)
 
     def initialize_gpio(self):
         if self.simulation:
@@ -84,74 +103,72 @@ class RobotManager:
         self.side = "BLUE" if GPIO.input(self.GPIO["side"]["pin"]) else "YELLOW"
 
     def move(self, dist, theta=None):
-        if theta is None:
-            arg = "001"
-        else:
-            arg = "010"
-
-        message = self.operation["SPO"] + self.type["int_16"] + arg
         if self.simulation:
             logging.debug("Moving to distance: {}, angle: {}".format(dist, theta))
             return True
 
-        self.serial_write(bytes(message, "utf-8"))
-        self.serial_write(bytes(str(dist), "utf-8"))
         if theta is not None:
-            self.serial_write(bytes(str(theta), "utf-8"))
-        self.ser.timeout = self.ksm_timeout
+            self.serial_write(self.operation["SPO"], self.type["int_16"], [dist, theta])
+        else:
+            self.serial_write(self.operation["SPO"], self.type["int_16"], [dist])
+
+        self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != bytes(self.return_codes["KMS"], "utf-8"):
+        if output != self.return_codes["KMS"]:
             self.move(dist, theta)
-        elif output == bytes(self.return_codes["KMS"], "utf-8"):
+        elif output == self.return_codes["KMS"]:
             self.ser.timeout = self.move_timeout
             output = self.serial_read()
-            if output == bytes(self.return_codes["RPOOK"], "utf-8"):
+            if output == self.return_codes["RPOOK"]:
                 return True
-            elif output == bytes(self.return_codes["RPOUT"], "utf-8"):
+            elif output == self.return_codes["RPOOUT"]:
                 return False
 
     def go_angle(self, theta):
-        message = self.operation["SRO"] + self.type["int_16"] + "001"
         if self.simulation:
             logging.debug("Going to angle: {}".format(theta))
             return True
-        self.serial_write(bytes(message, "utf-8"))
-        self.serial_write(bytes(str(theta), "utf-8"))
-        self.ser.timeout = self.ksm_timeout
+
+        self.serial_write(self.operation["SRO"], self.type["int_16"], [theta])
+        self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != bytes(self.return_codes["KMS"], "utf-8"):
+        if output != self.return_codes["KMS"]:
             self.go_angle(theta)
-        elif output == bytes(self.return_codes["KMS"], "utf-8"):
+        elif output == self.return_codes["KMS"]:
             self.ser.timeout = self.move_timeout
             output = self.serial_read()
-            if output == bytes(self.return_codes["RROOK"], "utf-8"):
+            if output == self.return_codes["RROOK"]:
                 return True
-            elif output == bytes(self.return_codes["RROOUT"], "utf-8"):
+            elif output == self.return_codes["RROOUT"]:
                 return False
 
     def reset(self):
-        message = self.operation["RESET"] + self.type["int_16"] + "000"
         if self.simulation:
             logging.debug("Resetting")
             return True
-        self.serial_write(bytes(message, "utf-8"))
-        self.ser.timeout = self.ksm_timeout
+
+        self.serial_write(self.operation["RESET"], self.type["int_16"], [])
+
+        self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != bytes(self.return_codes["KMS"], "utf-8"):
-            time.sleep(0.1)
+        if output != self.return_codes["KMS"]:
+            self.reset()
+        elif output == self.return_codes["KMS"]:
+            time.sleep(1)
             return True
-        else:
-            return False
 
     def go_speed(self):
         message = self.operation["SVI"] + self.type["int_16"] + "000"
         if self.simulation:
             logging.debug("Going to speed")
             return True
-        self.serial_write(bytes(message, "utf-8"))
-        self.ser.timeout = self.ksm_timeout
+
+        self.serial_write(self.operation["SVI"], self.type["int_16"], [])
+        self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != bytes(self.return_codes["KMS"], "utf-8"):
+        if output != self.return_codes["KMS"]:
+            self.go_speed()
+        elif output == self.return_codes["KMS"]:
             return True
 
     def stop(self):
@@ -159,13 +176,15 @@ class RobotManager:
         if self.simulation:
             logging.debug("Stopping")
             return True
-        self.serial_write(bytes(message, "utf-8"))
-        self.ser.timeout = self.ksm_timeout
+
+        self.serial_write(self.operation["STOP"], self.type["int_16"], [])
+        self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != bytes(self.return_codes["KMS"], "utf-8"):
+        if output != self.return_codes["KMS"]:
+            self.stop()
+        elif output == self.return_codes["KMS"]:
+            time.sleep(1)
             return True
-        else:
-            return False
 
     def buldozer(self, move="open"):
         if self.simulation:
