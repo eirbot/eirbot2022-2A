@@ -19,7 +19,9 @@ void send_byte(uint8_t ch) {
 
 uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
   // receive header
-  HAL_UART_Receive(&huart2, cmd_buffer, 1, HAL_MAX_DELAY);
+  if( HAL_UART_Receive(&huart2, cmd_buffer, 1, HAL_MAX_DELAY) != HAL_OK ) {
+	  return 0xFF;
+  }
 
   // parse header
   header = cmd_buffer[0];
