@@ -123,6 +123,12 @@ int main(void)
 			  theta = params_int16[1];
 
 			  //maj asserv
+			  if( d == 0 ) {
+				  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+			  }
+			  else if( d == 1000 ) {
+				  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+			  }
 
 			  //if everything is ok
 			  send_byte(RPOOK);

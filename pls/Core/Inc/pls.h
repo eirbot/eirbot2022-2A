@@ -12,6 +12,7 @@
 
 #define MAX_CMD_BUF 16
 #define MAX_PARAM 2
+#define PLS_TIMEOUT 100
 
 #define ID_MASK 0xF0
 #define TYPE_MASK 0x08
