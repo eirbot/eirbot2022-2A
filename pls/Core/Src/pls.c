@@ -33,7 +33,7 @@ uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
   if( n_var <= MAX_PARAM && type <= 1 && id <= 6 ) {
 
 	  // receive parameters
-	  HAL_UART_Receive(&huart2, cmd_buffer+1, (type+1)*n_var, HAL_MAX_DELAY);
+	  HAL_UART_Receive(&huart2, cmd_buffer+1, (type+1)*2*n_var, HAL_MAX_DELAY);
 
 	  // parse parameters and update param_size variable
 	  // !!! only int16 for the moment
