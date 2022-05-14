@@ -28,7 +28,7 @@ def send_cmd(op, int_type, param_array):
 
     for param in param_array:
         if( int_type == type["int_16"] ):
-            if(param < 32768 or param > 32767):
+            if(param < -32768 or param > 32767):
                 raise ValueError
             data += struct.pack("!h", param)
 
@@ -78,6 +78,9 @@ def main():
 print("Liste des commandes:")
 for key in operation:
     print("\t -", key.lower())
+
+######## EXEMPLE CMD ########
+print("Exemple: spo 10 90[Entrée]")
 
 ######## CHOIX DU PORT ########
 
