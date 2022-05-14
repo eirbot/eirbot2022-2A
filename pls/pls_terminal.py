@@ -2,21 +2,45 @@
 
 import serial
 import serial.tools.list_ports as list_ports
+import struct
 
-operation: dict[str, bin] = {"SPO": "0001",
-                            "RESET": "0010",
-                            "SRO": "0100",
-                            "SVI": "0101",
-                            "STOP": "0110"}
-type: dict[str, bin] = {"int_16": "0",
-                        "int_32": "1"}
-return_codes: dict[str, bin] = {"KMS": "0000",
-                                "RPOOK": "0001",
-                                "RROOUT": "0010",
-                                "RROOK": "0011",
-                                "RPOUT": "0100",
-                                "ERROR": "0101"}
-bin_list = ["000","001","010","011","100"]
+# TX codes
+operation: dict[str, bin] = {"SPO": 1,
+                             "RESET": 2,
+                             "SRO": 4,
+                             "SVI": 5,
+                             "STOP": 6}
+type: dict[str, bin] = {"int_16": 0,
+                        "int_32": 1}
+
+# RX codes
+return_codes: dict[str, bin] = {"KMS": 0,
+                                "RPOOK": 1,
+                                "RROOUT": 2,
+                                "RROOK": 3,
+                                "RPOUT": 4,
+                                "PLS": 5}
+# bin_list = ["000","001","010","011","100"]
+
+def send_cmd(op, int_type, param_array):
+    header = op << 4 | int_type << 3 | len(param_array)
+    data = []
+
+    for param in param_array:
+        if( int_type == type["int_16"] ):
+            if(param < 32768 or param > 32767):
+                raise ValueError
+            data += struct.pack("!h", param)
+
+        elif( int_type == type["int_32"] ):
+            if(param < -2147483648 or param > 2147483647):
+                raise ValueError
+            data += struct.pack("!i", param)
+
+    cmd = [header] + data
+
+    print("tx:", cmd)
+    ser.write(cmd)
 
 def main():
     while(True):
@@ -26,23 +50,28 @@ def main():
 
             n_var = len(splited) - 1
 
-            header = operation[splited[0].upper()] + type["int_16"] + bin_list[n_var]
+            ope = splited.pop(0)
+            param = list(map(int, splited))
 
-            print(header)
-            ser.write(bytes(header, "utf-8"))
+            send_cmd(operation[ope.upper()], type["int_32"], param)
 
-            splited.pop(0)
-            for param in splited:
-                print(bytes(str(param), "utf-8"))
-                ser.write(bytes(str(param), "utf-8"))
-
-            answer = ser.read()
+            answer = ser.read()[0]
             for ret_code in return_codes:
-                if answer == bytes(return_codes[ret_code], "utf-8"):
-                    print(ret_code)
+                if answer == return_codes[ret_code]:
+                    print("rx:", ret_code)
+
+            # seconde réponse pour SPO ou SRO (pas testé)
+            if(ope.upper() == "SPO" or ope.upper() == "SRO"):
+                answer = ser.read()[0]
+                for ret_code in return_codes:
+                    if answer == return_codes[ret_code]:
+                        print("rx:", ret_code)
 
         except KeyError:
             print("Commande inconnue")
+        except ValueError:
+            print("Paramètre en dehors des limites (-32 768 à 32 767 inclus pour int16 et -2 147 483 648 à 2 147 483 647 pour int32)")
+
 
 ######## LIST DES COMMANDES ########
 
@@ -81,6 +110,6 @@ while(True):
     try:
         main()
     except KeyboardInterrupt:
-        print("Au revoir")
+        print("\nAu revoir\n")
         ser.close()
         break
