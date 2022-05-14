@@ -4,6 +4,7 @@ import multiprocessing
 import struct
 import time
 
+import RPi.GPIO as GPIO
 import requests
 import serial
 
@@ -11,6 +12,9 @@ import arm_manager
 
 
 def end_of_world():
+    """
+    This function is called when the time is up.
+    """
     begin = time.time()
     while time.time() - begin < 80:
         pass
@@ -26,9 +30,8 @@ class RobotManager:
         OUT = 0
         IN = 1
         if not self.simulation:
-            # import RPi.GPIO as GPIO
-            # OUT = GPIO.OUT
-            # IN = GPIO.IN
+            OUT = GPIO.OUT
+            IN = GPIO.IN
             self.ser = serial.Serial(self.usb, self.baudrate)
         self.GPIO: dict[str, dict[str | int, str]] = {"bulldozer": {"pin": 5, "direction": OUT},
                                                       "display": {"pin": 6, "direction": OUT},
@@ -38,7 +41,9 @@ class RobotManager:
                                                       "side": {"pin": 23, "direction": IN},
                                                       "gp2_forward": {"pin": 24, "direction": IN},
                                                       "gp2_backward": {"pin": 25, "direction": IN},
-                                                      "showcase": {"pin": 12, "direction": OUT}}
+                                                      "showcase": {"pin": 12, "direction": OUT},
+                                                      "red_led": {"pin": 16, "direction": OUT},
+                                                      "reset": {"pin": 19, "direction": OUT}, }
         self.start: bool = False
         self.side: str = "BLUE"
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
@@ -59,11 +64,13 @@ class RobotManager:
                                              "PLS": b'\x05', }
 
         self.kms_timeout: float = 1
+        self.kms_dead_count: int = 0
+        self.reset_soft_count: int = 0
         self.move_timeout: int = 10
         logging.getLogger().setLevel(log_level)
         self.camera_url: str = camera_url
-        # self.initialize_gpio()
-        # multiprocessing.Process(target=end_of_world).start()
+        self.initialize_gpio()
+        multiprocessing.Process(target=end_of_world).start()
 
     def serial_read(self):
         data = self.ser.read()
@@ -89,6 +96,26 @@ class RobotManager:
 
         self.ser.write(cmd)
 
+    def kms_is_dead(self, output):
+        """
+        This function check if the output on serial is KMS, if not count the number of time and reset nucleo if
+        necessary.
+        """
+        if output != self.return_codes["KMS"]:
+            self.kms_dead_count += 1
+            if self.kms_dead_count >= 10:
+                self.kms_dead_count = 0
+                self.reset_soft_count += 1
+                self.reset()
+                if self.reset_soft_count >= 3:
+                    self.reset_soft_count = 0
+                    GPIO.output(self.gpio_pins["reset"]["pin"], GPIO.HIGH)
+            return False
+        else:
+            self.kms_dead_count = 0
+            self.reset_soft_count = 0
+            return True
+
     def initialize_gpio(self):
         if self.simulation:
             logging.debug("Initializing GPIO")
@@ -110,9 +137,9 @@ class RobotManager:
 
         self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != self.return_codes["KMS"]:
+        if not self.kms_is_dead(output):
             self.move(dist, theta)
-        elif output == self.return_codes["KMS"]:
+        else:
             self.ser.timeout = self.move_timeout
             output = self.serial_read()
             if output == self.return_codes["RPOOK"]:
@@ -128,9 +155,9 @@ class RobotManager:
         self.serial_write(self.operation["SRO"], self.type["int_16"], [theta])
         self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != self.return_codes["KMS"]:
+        if not self.kms_is_dead(output):
             self.go_angle(theta)
-        elif output == self.return_codes["KMS"]:
+        else:
             self.ser.timeout = self.move_timeout
             output = self.serial_read()
             if output == self.return_codes["RROOK"]:
@@ -145,11 +172,15 @@ class RobotManager:
 
         self.serial_write(self.operation["RESET"], self.type["int_16"], [])
 
+        GPIO.output(self.GPIO["reset"]["pin"], GPIO.HIGH)
+        time.sleep(0.1)
+        GPIO.output(self.GPIO["reset"]["pin"], GPIO.LOW)
+
         self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != self.return_codes["KMS"]:
+        if not self.kms_is_dead(output):
             self.reset()
-        elif output == self.return_codes["KMS"]:
+        else:
             time.sleep(1)
             return True
 
@@ -162,9 +193,9 @@ class RobotManager:
         self.serial_write(self.operation["SVI"], self.type["int_16"], [])
         self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != self.return_codes["KMS"]:
+        if not self.kms_is_dead(output):
             self.go_speed()
-        elif output == self.return_codes["KMS"]:
+        else:
             return True
 
     def stop(self):
@@ -176,9 +207,9 @@ class RobotManager:
         self.serial_write(self.operation["STOP"], self.type["int_16"], [])
         self.ser.timeout = self.kms_timeout
         output = self.serial_read()
-        if output != self.return_codes["KMS"]:
+        if not self.kms_is_dead(output):
             self.stop()
-        elif output == self.return_codes["KMS"]:
+        else:
             time.sleep(1)
             return True
 
@@ -204,6 +235,7 @@ class RobotManager:
 
     def wait_until_start(self):
         import RPi.GPIO as GPIO
+        self.reset()
         while GPIO.input(self.GPIO["start"]["pin"]) != 1:
             time.sleep(0.1)
         logging.error("Started")
