@@ -1,16 +1,19 @@
 import logging
 import time
 
-import RPi.GPIO as GPIO
+from RPi import GPIO
+
+import flags
 
 
 class GpioManager:
     def __init__(self, simulation):
         OUT = 0
         IN = 1
+        self.simulation = simulation
         if not self.simulation:
-            OUT = GpioManager.OUT
-            IN = GpioManager.IN
+            OUT = GPIO.OUT
+            IN = GPIO.IN
         self.GPIO: dict[str, dict[str | int, str]] = {"bulldozer": {"pin": 5, "direction": OUT},
                                                       "display": {"pin": 6, "direction": OUT},
                                                       "limit_switch_forward": {"pin": 13, "direction": IN},
@@ -27,11 +30,18 @@ class GpioManager:
         if self.simulation:
             logging.debug("Initializing GpioManager")
             return True
-        from RPi import GPIO
         GPIO.setmode(GPIO.BCM)
         for key in self.GPIO:
             logging.debug("Initializing {} GpioManager with pin {} and direction {}".format(key, self.GPIO[key]["pin"],
-                                                                                     self.GPIO[key]["direction"]))
+                                                                                            self.GPIO[key][
+                                                                                                "direction"]))
             GPIO.setup(self.GPIO[key]["pin"], self.GPIO[key]["direction"])
             time.sleep(0.1)
-        self.side = "BLUE" if GPIO.input(self.GPIO["side"]["pin"]) else "YELLOW"
+        GPIO.add_event_detect(self.GPIO["gp2_forward"]["pin"], GPIO.BOTH, callback=self.gp2_forward_callback,
+                              bouncetime=100)
+
+    def gp2_forward_callback(self):
+        if GPIO.input(self.GPIO["gp2_forward"]["pin"]):
+            flags.BLOCKED = True
+        else:
+            flags.BLOCKED = False

@@ -29,9 +29,7 @@ def move_angle(angle):
 
 
 if __name__ == "__main__":
-    master, slave = pty.openpty()
-    s_name = os.ttyname(slave)
-    rob = RobotManager(simulation=False, log_level=logging.DEBUG, port="/dev/pts/2")
+    rob = RobotManager(log_level=logging.DEBUG)
     rob.move(1000)
     move_position(1000)
     # print(_x,_y, _theta)
