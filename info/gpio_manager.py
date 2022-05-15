@@ -37,11 +37,3 @@ class GpioManager:
                                                                                                 "direction"]))
             GPIO.setup(self.GPIO[key]["pin"], self.GPIO[key]["direction"])
             time.sleep(0.1)
-        GPIO.add_event_detect(self.GPIO["gp2_forward"]["pin"], GPIO.BOTH, callback=self.gp2_forward_callback,
-                              bouncetime=100)
-
-    def gp2_forward_callback(self):
-        if GPIO.input(self.GPIO["gp2_forward"]["pin"]):
-            flags.BLOCKED = True
-        else:
-            flags.BLOCKED = False

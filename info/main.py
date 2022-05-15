@@ -30,6 +30,7 @@ def move_angle(angle):
 
 if __name__ == "__main__":
     rob = RobotManager(log_level=logging.DEBUG)
+    # rob.wait_until_start()
     rob.move(1000)
     move_position(1000)
     # print(_x,_y, _theta)

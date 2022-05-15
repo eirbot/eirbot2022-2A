@@ -1,5 +1,6 @@
 import logging
 import struct
+import time
 
 import serial
 
@@ -41,3 +42,4 @@ class SerialManager():
             logging.info("Writing to serial: {}".format(cmd))
 
             self.ser.write(cmd)
+            time.sleep(1)

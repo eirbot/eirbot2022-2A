@@ -7,6 +7,7 @@ import requests
 from RPi import GPIO
 
 import arm_manager
+import flags
 import gpio_manager
 import serial_manager
 
@@ -15,6 +16,8 @@ class RobotManager:
     def __init__(self, simulation: bool = False, baudrate: int = 115200, port: str = "/dev/ttyACM0",
                  log_level: int = logging.INFO, camera_url: str = "http://0.0.0.0"):
         self.simulation: bool = simulation
+
+        self.camera_url: str = camera_url
 
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
         self.gpio: gpio_manager.GpioManager = gpio_manager.GpioManager(simulation=self.simulation)
@@ -44,9 +47,33 @@ class RobotManager:
         self._theta: int = 0
 
         logging.getLogger().setLevel(log_level)
-        multiprocessing.Process(target=self.end_of_world).start()
+        multiprocessing.Process(target=self.__end_of_world).start()
 
-    def end_of_world(self):
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.RISING, callback=self.__gp2_forward_callback,
+                              bouncetime=100)
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.RISING, callback=self.__gp2_backward_callback,
+                              bouncetime=100)
+
+
+
+    def __gp2_forward_callback(self, channel):
+        logging.error("GP2 forward callback")
+        logging.error(GPIO.input(channel))
+        if GPIO.input(channel) == 1:
+            flags.BLOCKED = True
+        elif GPIO.input(channel) == 0:
+            flags.BLOCKED = False
+
+    def __gp2_backward_callback(self, channel):
+        logging.error("GP2 forward callback")
+        logging.error(GPIO.input(channel))
+        if GPIO.input(channel) == 1:
+            flags.BACKWARD_BLOCKED = True
+        elif GPIO.input(channel) == 0:
+            flags.BACKWARD_BLOCKED = False
+
+
+    def __end_of_world(self):
         """
         This function is called when the time is up.
         """
@@ -56,29 +83,24 @@ class RobotManager:
         self.stop()
         logging.getLogger().error("END")
 
-    def detection(self):
-        if self.simulation:
-            logging.debug("Detection")
-            return True
-
-    def kms_is_dead(self, output):
+    def __kms_is_dead(self, output):
         """
         This function check if the output on serial is KMS, if not count the number of time and reset nucleo if
         necessary.
         """
         if output != b'\x00':
-            self.kms_dead_count += 1
-            if self.kms_dead_count >= 10:
-                self.kms_dead_count = 0
-                self.reset_soft_count += 1
+            self.serial.kms_dead_count += 1
+            if self.serial.kms_dead_count >= 10:
+                self.serial.kms_dead_count = 0
+                self.serial.reset_soft_count += 1
                 self.reset()
-                if self.reset_soft_count >= 3:
-                    self.reset_soft_count = 0
+                if self.serial.reset_soft_count >= 3:
+                    self.serial.reset_soft_count = 0
                     GPIO.output(self.gpio.GPIO["reset"]["pin"], GPIO.HIGH)
             return False
         else:
-            self.kms_dead_count = 0
-            self.reset_soft_count = 0
+            self.serial.kms_dead_count = 0
+            self.serial.reset_soft_count = 0
             return True
 
     def move(self, dist, theta=0):
@@ -89,7 +111,7 @@ class RobotManager:
 
         self.serial.ser.timeout = self.serial.kms_timeout
         output = self.serial.serial_read()
-        if not self.kms_is_dead(output):
+        if not self.__kms_is_dead(output):
             self.move(dist, theta)
         else:
             self.serial.ser.timeout = self.serial.move_timeout
@@ -107,7 +129,7 @@ class RobotManager:
         self.serial.serial_write(self.operation["SRO"], self.serial.type["int_16"], [theta])
         self.serial.ser.timeout = self.serial.kms_timeout
         output = self.serial.serial_read()
-        if not self.kms_is_dead(output):
+        if not self.__kms_is_dead(output):
             self.go_angle(theta)
         else:
             self.serial.ser.timeout = self.serial.move_timeout
@@ -130,7 +152,7 @@ class RobotManager:
 
         self.serial.ser.timeout = self.serial.kms_timeout
         output = self.serial.serial_read()
-        if not self.kms_is_dead(output):
+        if not self.__kms_is_dead(output):
             self.reset()
         else:
             time.sleep(1)
@@ -144,7 +166,7 @@ class RobotManager:
         self.serial.serial_write(self.operation["SVI"], self.serial.type["int_16"], [])
         self.serial.ser.timeout = self.serial.kms_timeout
         output = self.serial.serial_read()
-        if not self.kms_is_dead(output):
+        if not self.__kms_is_dead(output):
             self.go_speed()
         else:
             return True
@@ -157,7 +179,7 @@ class RobotManager:
         self.serial.serial_write(self.operation["STOP"], self.serial.type["int_16"], [])
         self.serial.ser.timeout = self.serial.kms_timeout
         output = self.serial.serial_read()
-        if not self.kms_is_dead(output):
+        if not self.__kms_is_dead(output):
             self.stop()
         else:
             time.sleep(1)
