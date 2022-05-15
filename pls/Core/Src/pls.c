@@ -32,6 +32,13 @@ uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
   // check header
   if( n_var <= MAX_PARAM && type <= 1 && id <= 6 ) {
 
+	  // no parameters
+	  if( n_var == 0 ) {
+		  send_byte(KMS);
+		  *param_size = 0;
+		  return id;
+	  }
+
 	  // receive parameters
 	  if( HAL_UART_Receive(&huart2, cmd_buffer+1, (type+1)*2*n_var, PLS_TIMEOUT) != HAL_OK ) {
 		  return 0xFF;
