@@ -24,7 +24,7 @@
 
 /* USER CODE END 0 */
 
-UART_HandleTypeDef huart2;
+//UART_HandleTypeDef huart2;
 
 /* USART2 init function */
 

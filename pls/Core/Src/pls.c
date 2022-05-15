@@ -11,59 +11,59 @@
 UART_HandleTypeDef huart2;
 
 uint8_t cmd_buffer[MAX_CMD_BUF];
-uint8_t header, id, type, n_var;
 
 void send_byte(uint8_t ch) {
-	HAL_UART_Transmit(&huart2, &ch, 1, 0xFFFF);
+    HAL_UART_Transmit(&huart2, &ch, 1, 0xFFFF);
 }
 
 uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
-  // receive header
-  if( HAL_UART_Receive(&huart2, cmd_buffer, 1, PLS_TIMEOUT) != HAL_OK ) {
-	  return 0xFF;
-  }
+    // receive header
+    uint8_t header, id, type, n_var;
 
-  // parse header
-  header = cmd_buffer[0];
-  id = (header & ID_MASK) >> 4;
-  type = (header & TYPE_MASK) >> 3;
-  n_var = (header & NCMD_MASK);
+    if (HAL_UART_Receive(&huart2, cmd_buffer, 1, PLS_TIMEOUT) != HAL_OK) {
+        return 0xFF;
+    }
 
-  // check header
-  if( n_var <= MAX_PARAM && type <= 1 && id <= 6 ) {
+    // parse header
+    header = cmd_buffer[0];
+    id = (header & ID_MASK) >> 4;
+    type = (header & TYPE_MASK) >> 3;
+    n_var = (header & NCMD_MASK);
 
-	  // no parameters
-	  if( n_var == 0 ) {
-		  send_byte(KMS);
-		  *param_size = 0;
-		  return id;
-	  }
+    // check header
+    if (n_var <= MAX_PARAM && type <= 1 && id <= 6) {
 
-	  // receive parameters
-	  if( HAL_UART_Receive(&huart2, cmd_buffer+1, (type+1)*2*n_var, PLS_TIMEOUT) != HAL_OK ) {
-		  return 0xFF;
-	  }
+        // no parameters
+        if (n_var == 0) {
+            send_byte(KMS);
+            *param_size = 0;
+            return id;
+        }
 
-	  // parse parameters and update param_size variable
-	  // !!! only int16 for the moment
-	  uint8_t ind = 1; // temp buf index
-	  for (uint8_t i = 0; i < n_var; i++) {
-		  params[i] = (cmd_buffer[ind] << 8) + cmd_buffer[ind + 1];
-		ind += 2;
-	  }
+        // receive parameters
+        if (HAL_UART_Receive(&huart2, cmd_buffer + 1, (type + 1) * 2 * n_var, PLS_TIMEOUT) != HAL_OK) {
+            return 0xFF;
+        }
 
-	  *param_size = n_var;
+        // parse parameters and update param_size variable
+        // !!! only int16 for the moment
+        uint8_t ind = 1; // temp buf index
+        for (uint8_t i = 0; i < n_var; i++) {
+            params[i] = (cmd_buffer[ind] << 8) + cmd_buffer[ind + 1];
+            ind += 2;
+        }
 
-	  // envoie confirmation réception
-	  send_byte(KMS);
+        *param_size = n_var;
 
-	  return id;
-  }
-  else {
-	  //flush serial buffer
-	  __HAL_UART_FLUSH_DRREGISTER(&huart2);
+        // envoie confirmation réception
+        send_byte(KMS);
 
-	  send_byte(ERROR);
-	  return 0xFF;
-  }
+        return id;
+    } else {
+        //flush serial buffer
+        __HAL_UART_FLUSH_DRREGISTER(&huart2);
+
+        send_byte(ERROR);
+        return 0xFF;
+    }
 }
