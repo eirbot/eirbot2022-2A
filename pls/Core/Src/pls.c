@@ -8,20 +8,18 @@
 #include "pls.h"
 #include "usart.h"
 
-//UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart2;
+
+uint8_t cmd_buffer[MAX_CMD_BUF];
+uint8_t header, id, type, n_var;
 
 void send_byte(uint8_t ch) {
 	HAL_UART_Transmit(&huart2, &ch, 1, 0xFFFF);
 }
 
 uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
-  uint8_t cmd_buffer[MAX_CMD_BUF];
-  uint8_t header, id, type, n_var;
-
-
   // receive header
   if( HAL_UART_Receive(&huart2, cmd_buffer, 1, PLS_TIMEOUT) != HAL_OK ) {
-	  // nothing to receive go back to main loop
 	  return 0xFF;
   }
 
@@ -32,15 +30,8 @@ uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
   n_var = (header & NCMD_MASK);
 
   // check header
-  if( n_var > MAX_PARAM && type > 1 && id > 6 ) {
-	  //flush serial buffer
-	  __HAL_UART_FLUSH_DRREGISTER(&huart2);
+  if( n_var <= MAX_PARAM && type <= 1 && id <= 6 ) {
 
-	  send_byte(ERROR);
-	  return 0xFF;
-  }
-
-  if( n_var > 0 ) {
 	  // receive parameters
 	  if( HAL_UART_Receive(&huart2, cmd_buffer+1, (type+1)*2*n_var, PLS_TIMEOUT) != HAL_OK ) {
 		  return 0xFF;
@@ -55,10 +46,17 @@ uint8_t wait_cmd(int16_t params[], uint8_t* param_size) {
 	  }
 
 	  *param_size = n_var;
+
+	  // envoie confirmation réception
+	  send_byte(KMS);
+
+	  return id;
   }
+  else {
+	  //flush serial buffer
+	  __HAL_UART_FLUSH_DRREGISTER(&huart2);
 
-  // envoie confirmation réception
-  send_byte(KMS);
-
-  return id;
+	  send_byte(ERROR);
+	  return 0xFF;
+  }
 }
