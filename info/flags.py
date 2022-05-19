@@ -1,2 +1,3 @@
 BLOCKED = False
 BACKWARD_BLOCKED = False
+SIDE = "YELLOW"

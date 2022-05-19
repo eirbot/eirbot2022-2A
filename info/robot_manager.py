@@ -7,6 +7,7 @@ import requests
 from RPi import GPIO
 
 import arm_manager
+import camera_manager
 import flags
 import gpio_manager
 import serial_manager
@@ -22,12 +23,14 @@ class RobotManager:
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
         self.gpio: gpio_manager.GpioManager = gpio_manager.GpioManager(simulation=self.simulation)
         self.serial: serial_manager.SerialManager = serial_manager.SerialManager(baudrate=baudrate, port=port)
+        self.camera: camera_manager.CameraManager = camera_manager.CameraManager(camera_url=self.camera_url)
 
         if not self.simulation:
             self.gpio.initialize_gpio()
 
         self.start: bool = False
-        self.side: str = "BLUE"
+        self.side: str = "YELLOW"
+        flags.SIDE = self.side
 
         self.operation: dict[str, bin] = {"SPO": 1,
                                           "RESET": 2,
@@ -48,15 +51,35 @@ class RobotManager:
 
         logging.getLogger().setLevel(log_level)
         multiprocessing.Process(target=self.__end_of_world).start()
+        # multiprocessing.Process(target=self.__gp2_forward_callback).start()
 
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.RISING, callback=self.__gp2_forward_callback,
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.RISING,
+                              callback=self.__gp2_forward_callback_rise,
                               bouncetime=100)
         GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.RISING, callback=self.__gp2_backward_callback,
                               bouncetime=100)
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.FAILING,
+                              callback=self.__gp2_forward_callback_fail,
+                              bouncetime=100)
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.FAILING,
+                              callback=self.__gp2_backward_callback,
+                              bouncetime=100)
+        GPIO.add_event_detect(self.gpio.GPIO["limit_switch_forward"]["pin"], GPIO.RISING,
+                              callback=self.__limit_switch_forward_callback,
+                              bouncetime=100)
+        GPIO.add_event_detect(self.gpio.GPIO["limit_switch_backward"]["pin"], GPIO.RISING,
+                              callback=self.__limit_switch_backward_callback,
+                              bouncetime=100)
 
+    def __gp2_forward_callback_rise(self, channel):
+        logging.error("GP2 backward callback rise")
+        flags.BLOCKED = True
 
+    def __gp2_forward_callback_fail(self, channel):
+        logging.error("GP2 backward callback fail ")
+        flags.BLOCKED = False
 
-    def __gp2_forward_callback(self, channel):
+    def __gp2_backward_callback(self, channel):
         logging.error("GP2 forward callback")
         logging.error(GPIO.input(channel))
         if GPIO.input(channel) == 1:
@@ -64,14 +87,11 @@ class RobotManager:
         elif GPIO.input(channel) == 0:
             flags.BLOCKED = False
 
-    def __gp2_backward_callback(self, channel):
-        logging.error("GP2 forward callback")
-        logging.error(GPIO.input(channel))
-        if GPIO.input(channel) == 1:
-            flags.BACKWARD_BLOCKED = True
-        elif GPIO.input(channel) == 0:
-            flags.BACKWARD_BLOCKED = False
+    def __limit_switch_forward_callback(self, channel):
+        logging.error("Limit switch forward callback")
 
+    def __limit_switch_backward_callback(self, channel):
+        logging.error("Limit switch backward callback")
 
     def __end_of_world(self):
         """
@@ -211,3 +231,9 @@ class RobotManager:
             time.sleep(0.1)
         logging.error("Started")
         return True
+
+    def go_until_wall(self):
+        self.go_speed()
+        while GPIO.input(self.gpio.GPIO["limit_switch_forward"]["pin"]) != 1:
+            time.sleep(0.1)
+        self.stop()
