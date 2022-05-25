@@ -35,9 +35,28 @@ if __name__ == "__main__":
     rob = RobotManager(log_level=logging.DEBUG)
     rob.wait_until_start()
     
-    rob.move(100, 0)
-    rob.go_angle(90)
-    rob.move(790)
+
+    rob.move(500, 0)
+    time.sleep(3)
     rob.arm.inverted_nazi(True)
-    rob.go_angle(360)
+    time.sleep(3)
     rob.arm.inverted_nazi(False)
+    time.sleep(3)
+    rob.go_angle(360)
+
+
+    # if rob.side == "YELLOW" :
+    #     rob.move(100, 0)
+    #     rob.go_angle(90)
+    #     rob.move(790)
+    #     rob.arm.inverted_nazi(True)
+    #     rob.go_angle(360)
+    #     rob.arm.inverted_nazi(False)
+
+    # else :
+    #     rob.move(100, 0)
+    #     rob.go_angle(-90)
+    #     rob.move(790)
+    #     rob.arm.inverted_nazi(True)
+    #     rob.go_angle(360)
+    #     rob.arm.inverted_nazi(False)
