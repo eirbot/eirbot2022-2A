@@ -200,12 +200,14 @@ class API:
             if ids[id] != REFERENCE:
                 try:
                     center = (corners[id][0][0] + corners[id][0][2]) / 2
-                    distance_x = (center[0] - self.center_x) * self.ratio
-                    distance_y = (center[1] - self.center_y) * self.ratio
-                    diag = math.sqrt(distance_x ** 2 + distance_y ** 2)
+                    diag_x = (center[0] - self.center_x) * self.ratio
+                    diag_y = (center[1] - self.center_y) * self.ratio
+                    diag = math.sqrt(diag_x ** 2 + diag_y ** 2)
                     print(corners)
                     haut = 1.5 if ids[id] >= 11 and ids[id] <= 50 else 43
                     distance = math.sqrt(abs(diag ** 2 - haut ** 2))
+                    distance_x = (-1 if center[0] >= self.center_x else 1) * math.sqrt(abs(diag_x ** 2 - haut ** 2))
+                    distance_y = (-1 if center[1] >= self.center_y else 1) * math.sqrt(abs(diag_y ** 2 - haut ** 2))
                     json[id] = {'id': str(ids[id][0]), 'distance_x': distance_x, 'distance_y': distance_y,
                                 'distance': distance, 'corners': (str(corners[id][0][0]), str(corners[id][0][1]),
                                                                   str(corners[id][0][2]), str(corners[id][0][3]))}
