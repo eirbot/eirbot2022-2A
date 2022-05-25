@@ -45,9 +45,14 @@ class RobotManager:
                                              "RPOOUT": b'\x04',
                                              "PLS": b'\x05', }
 
-        self._x: int = 0
-        self._y: int = 0
-        self._theta: int = 0
+        if self.side == "YELLOW" :
+            self._x: int = 0
+            self._y: int = 0
+            self._theta: int = 0
+        else :
+            self._x: int = 0
+            self._y: int = 0
+            self._theta: int = 0
 
         logging.getLogger().setLevel(log_level)
         multiprocessing.Process(target=self.__end_of_world).start()
@@ -141,7 +146,10 @@ class RobotManager:
             elif output == self.return_codes["RPOOUT"]:
                 return False
 
+        self.move_position(dist)
+
     def go_angle(self, theta):
+
         if self.simulation:
             logging.debug("Going to angle: {}".format(theta))
             return True
@@ -158,6 +166,8 @@ class RobotManager:
                 return True
             elif output == self.return_codes["RROOUT"]:
                 return False
+        
+        self.move_angle(theta)
 
     def reset(self):
         if self.simulation:
@@ -248,3 +258,14 @@ class RobotManager:
         while GPIO.input(self.gpio.GPIO["limit_switch_forward"]["pin"]) != 1:
             time.sleep(0.1)
         self.stop()
+
+
+    def move_position(distance):
+        self._y += distance * math.sin(math.radians(self._theta))
+        self._x += distance * math.cos(math.radians(self._theta))
+
+
+    def move_angle(angle):
+        _theta += angle
+        _theta = _theta % 360
+

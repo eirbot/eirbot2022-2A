@@ -10,7 +10,7 @@ _x = 600
 _y = 160
 _theta = 90
 
-
+'''
 def move_position(distance):
     global _x
     global _y
@@ -28,9 +28,16 @@ def move_angle(angle):
     # if (_theta >180):
     #    _theta = 180 - _theta
 
+'''
+
 
 if __name__ == "__main__":
     rob = RobotManager(log_level=logging.DEBUG)
     rob.wait_until_start()
-    rob.go_speed()
-    rob.move(0, 0)
+    
+    rob.move(100, 0)
+    rob.go_angle(90)
+    rob.move(790)
+    rob.arm.inverted_nazi(True)
+    rob.go_angle(360)
+    rob.arm.inverted_nazi(False)
