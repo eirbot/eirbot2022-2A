@@ -61,7 +61,7 @@ class RobotManager:
         GPIO.add_event_detect(self.gpio.GPIO["limit_switch_forward"]["pin"], GPIO.RISING,
                               callback=self.__limit_switch_forward_callback,
                               bouncetime=100)
-        GPIO.add_event_detect(self.gpio.GPIO["limit_switch_backward"]["pin"], GPIO.RISING,
+        GPIO.add_event_detect(self.gpio.GPIO["limit_switch_backward"]["pin"], GPIO.FALLING,
                               callback=self.__limit_switch_backward_callback,
                               bouncetime=100)
 
@@ -216,9 +216,13 @@ class RobotManager:
             return True
 
     def showcase(self):
-        if self.simulation:
-            logging.debug("Showing showcase")
-            return True
+        multiprocessing.Process(target=self.__showcase_thread).start()
+        # GPIO.output(12, GPIO.HIGH)
+
+    def __showcase_thread(self):
+        while True:
+            GPIO.output(12, GPIO.HIGH)
+            time.sleep(0.2)
 
     def get_position(self):
         logging.error("Getting position from url: {}".format(self.camera_url))
@@ -226,12 +230,18 @@ class RobotManager:
         return position
 
     def wait_until_start(self):
-        # self.reset()
         while GPIO.input(self.gpio.GPIO["start"]["pin"]) != 0:
-            logging.debug("Waiting for start" + str(GPIO.input(self.gpio.GPIO["start"]["pin"])))
+            # logging.debug("Waiting for start" + str(GPIO.input(self.gpio.GPIO["start"]["pin"])))
             time.sleep(0.1)
         logging.error("Started")
         return True
+        # while True:
+        #     logging.error("Switch forward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_forward"]["pin"])))
+        #     logging.error("Switch backward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_backward"]["pin"])))
+        #     logging.error("GP2 forward: {}".format(GPIO.input(self.gpio.GPIO["gp2_forward"]["pin"])))
+        #     logging.error("GP2 backward: {}".format(GPIO.input(self.gpio.GPIO["gp2_backward"]["pin"])))
+        #     time.sleep(0.5)
+
 
     def go_until_wall(self):
         self.go_speed()

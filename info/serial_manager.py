@@ -40,6 +40,7 @@ class SerialManager():
 
             cmd = [header] + data
             logging.info("Writing to serial: {}".format(cmd))
+            logging.error("Writing to serial: {}".format(op+int_type+len(param_array)))
 
             self.ser.write(cmd)
             time.sleep(1)
