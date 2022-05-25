@@ -1,3 +1,5 @@
+import time
+
 from RPi import GPIO
 
 
@@ -10,5 +12,7 @@ class ArmManager:
     def inverted_nazi(self, activation: bool):
         if activation:
             GPIO.output(4, GPIO.HIGH)
+            time.sleep(1)
         elif not activation:
             GPIO.output(4, GPIO.LOW)
+            time.sleep(1)
