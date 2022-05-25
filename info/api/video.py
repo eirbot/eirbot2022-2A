@@ -8,7 +8,7 @@ import imutils as imutils
 import numpy as np
 from flask import render_template, Blueprint, request, Response
 
-REFERENCE = 17
+REFERENCE = 42
 
 
 def draw_aruco(corners, ids, frame):
@@ -168,7 +168,9 @@ class Video:
                     cv2.line(frame, (int(center[0]), int(center[1])), (int(self.center_x), int(self.center_y)),
                              (0, 255, 0),
                              2)
-                    distance = ((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2) ** 0.5 * self.ratio
+                    diag = ((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2) ** 0.5 * self.ratio
+                    haut = 1.5 if ids[id] >= 11 and ids[id] <= 50 else 43
+                    distance = sqrt(abs(diag ** 2 - haut ** 2))
                     cv2.putText(frame, "Distance: " + str(round(distance, 2)) + "cm", (int(center[0]), int(center[1])),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                 except TypeError:

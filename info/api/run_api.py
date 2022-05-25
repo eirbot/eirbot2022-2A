@@ -62,8 +62,8 @@ class RunAPI:
 
         from common import Common
         self.app.register_blueprint(Common().bp)
-        from video import Video
-        self.app.register_blueprint(Video().bp)
+        #from video import Video
+        #self.app.register_blueprint(Video().bp)
         from api import API
         self.app.register_blueprint(API().bp)
         CORS(self.app)
