@@ -1,0 +1,10 @@
+[Unit]
+Description=Aruco-Api
+After=network.target
+[Service]
+Environment=Display=:0
+Environment=XAUTHORITY/home/pi/.Xauthority
+ExecStart=/usr/bin/python3 /home/pi/api/run_api.py
+Restart=always
+[Install]
+WantedBy=multi-user.target
