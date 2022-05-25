@@ -2,6 +2,7 @@ import logging
 import math
 import os
 import pty
+import time
 
 from robot_manager import RobotManager
 
@@ -30,27 +31,6 @@ def move_angle(angle):
 
 if __name__ == "__main__":
     rob = RobotManager(log_level=logging.DEBUG)
-    # rob.wait_until_start()
-    rob.move(1000)
-    move_position(1000)
-    # print(_x,_y, _theta)
-
-    rob.go_angle(270)
-    move_angle(270)
-
-    rob.move(400)
-    move_position(400)
-    # print(_x,_y, _theta)
-
-    rob.go_angle(315)
-    move_angle(315)
-
-    rob.move(1054)
-    move_position(1054)
-    # print(_x,_y, _theta)
-
-    rob.arm.move_arm("home")
-    rob.suc(1)
-    rob.arm.move_arm("home")
-
-    print(_x, _y, _theta)
+    rob.wait_until_start()
+    rob.go_speed()
+    rob.move(0, 0)

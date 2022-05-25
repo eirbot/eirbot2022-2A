@@ -23,7 +23,7 @@ class RobotManager:
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
         self.gpio: gpio_manager.GpioManager = gpio_manager.GpioManager(simulation=self.simulation)
         self.serial: serial_manager.SerialManager = serial_manager.SerialManager(baudrate=baudrate, port=port)
-        self.camera: camera_manager.CameraManager = camera_manager.CameraManager(camera_url=self.camera_url)
+        # self.camera: camera_manager.CameraManager = camera_manager.CameraManager(camera_url=self.camera_url)
 
         if not self.simulation:
             self.gpio.initialize_gpio()
@@ -51,17 +51,11 @@ class RobotManager:
 
         logging.getLogger().setLevel(log_level)
         multiprocessing.Process(target=self.__end_of_world).start()
-        # multiprocessing.Process(target=self.__gp2_forward_callback).start()
 
         GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.RISING,
-                              callback=self.__gp2_forward_callback_rise,
+                              callback=self.__gp2_forward_callback,
                               bouncetime=100)
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.RISING, callback=self.__gp2_backward_callback,
-                              bouncetime=100)
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.FAILING,
-                              callback=self.__gp2_forward_callback_fail,
-                              bouncetime=100)
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.FAILING,
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.RISING,
                               callback=self.__gp2_backward_callback,
                               bouncetime=100)
         GPIO.add_event_detect(self.gpio.GPIO["limit_switch_forward"]["pin"], GPIO.RISING,
@@ -71,27 +65,33 @@ class RobotManager:
                               callback=self.__limit_switch_backward_callback,
                               bouncetime=100)
 
-    def __gp2_forward_callback_rise(self, channel):
+    def __gp2_forward_callback(self, channel):
         logging.error("GP2 backward callback rise")
+        self.stop()
         flags.BLOCKED = True
-
-    def __gp2_forward_callback_fail(self, channel):
-        logging.error("GP2 backward callback fail ")
+        time.sleep(1)
         flags.BLOCKED = False
 
     def __gp2_backward_callback(self, channel):
-        logging.error("GP2 forward callback")
-        logging.error(GPIO.input(channel))
-        if GPIO.input(channel) == 1:
-            flags.BLOCKED = True
-        elif GPIO.input(channel) == 0:
-            flags.BLOCKED = False
+        logging.error("GP2 forward callback rise")
+        self.stop()
+        flags.BLOCKED = True
+        time.sleep(1)
+        flags.BLOCKED = False
 
     def __limit_switch_forward_callback(self, channel):
-        logging.error("Limit switch forward callback")
+        logging.error("Limit switch forward callback rise")
+        self.stop()
+        flags.BLOCKED = True
+        time.sleep(1)
+        flags.BLOCKED = False
 
     def __limit_switch_backward_callback(self, channel):
-        logging.error("Limit switch backward callback")
+        logging.error("Limit switch backward callback rise")
+        self.stop()
+        flags.BLOCKED = True
+        time.sleep(1)
+        flags.BLOCKED = False
 
     def __end_of_world(self):
         """
@@ -108,20 +108,20 @@ class RobotManager:
         This function check if the output on serial is KMS, if not count the number of time and reset nucleo if
         necessary.
         """
-        if output != b'\x00':
-            self.serial.kms_dead_count += 1
-            if self.serial.kms_dead_count >= 10:
-                self.serial.kms_dead_count = 0
-                self.serial.reset_soft_count += 1
-                self.reset()
-                if self.serial.reset_soft_count >= 3:
-                    self.serial.reset_soft_count = 0
-                    GPIO.output(self.gpio.GPIO["reset"]["pin"], GPIO.HIGH)
-            return False
-        else:
-            self.serial.kms_dead_count = 0
-            self.serial.reset_soft_count = 0
-            return True
+        # if output != b'\x00':
+        #     self.serial.kms_dead_count += 1
+        #     if self.serial.kms_dead_count >= 10:
+        #         self.serial.kms_dead_count = 0
+        #         self.serial.reset_soft_count += 1
+        #         self.reset()
+        #         if self.serial.reset_soft_count >= 3:
+        #             self.serial.reset_soft_count = 0
+        #             GPIO.output(self.gpio.GPIO["reset"]["pin"], GPIO.HIGH)
+        #     return False
+        # else:
+        #     self.serial.kms_dead_count = 0
+        #     self.serial.reset_soft_count = 0
+        return True
 
     def move(self, dist, theta=0):
         if self.simulation:
@@ -226,8 +226,9 @@ class RobotManager:
         return position
 
     def wait_until_start(self):
-        self.reset()
-        while GPIO.input(self.gpio.GPIO["start"]["pin"]) != 1:
+        # self.reset()
+        while GPIO.input(self.gpio.GPIO["start"]["pin"]) != 0:
+            logging.debug("Waiting for start" + str(GPIO.input(self.gpio.GPIO["start"]["pin"])))
             time.sleep(0.1)
         logging.error("Started")
         return True

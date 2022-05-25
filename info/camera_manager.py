@@ -20,8 +20,10 @@ class CameraManager:
                 if response.json()['message'][number]['id'] in range(6, 10):
                     print(number)
 
+    # def update_flags(self):
+
+
 
 if __name__ == "__main__":
     cm = CameraManager("http://192.168.169.178:5000")
     print(cm.update_position())
-    side = "BLUE"
