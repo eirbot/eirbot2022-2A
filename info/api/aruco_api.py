@@ -55,6 +55,7 @@ class ArucoVideo:
         self.center_y = None
         self.aruco_size = 5.0
         self.ratio = None
+        self.pixels_ref = None
 
         self.aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
         self.parameters = cv2.aruco.DetectorParameters_create()
@@ -102,7 +103,7 @@ class ArucoVideo:
         d_x = corner[0][0][0] - corner[0][1][0]
         d_y = corner[0][0][1] - corner[0][1][1]
         angle = np.arctan2(d_y, d_x) * 180 / 3.14
-        print(id, angle)
+        print(id, angle, "°")
         return angle
 
     def gen_frames(self):
@@ -124,7 +125,7 @@ class ArucoVideo:
                 kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
                 gray = cv2.filter2D(gray, -1, kernel)
 
-                (corners, ids, rejected) = cv2.aruco.detectMarkers(gray,
+                (corners, ids, rejected) = cv2.aruco.detectMarkers(frame,
                                                                    self.aruco_dict,
                                                                    parameters=self.parameters)
                 aruco.drawDetectedMarkers(frame, corners)  # Draw A square around the markers
@@ -132,6 +133,7 @@ class ArucoVideo:
                 # verify *at least* one ArUco marker was detected
                 if len(corners) > 0:
                     ids = ids.flatten()
+                    self.find_origin(corners, ids)
                     if np.all(ids is not None):  # If there are markers found by detector
                         for i in range(0, len(ids)):  # Iterate in markers
                             # Estimate pose of each marker and return the values rvec and tvec---different from camera coefficients
@@ -143,9 +145,14 @@ class ArucoVideo:
                             center = (corners[i][0][0] + corners[i][0][2]) / 2
                             cv2.circle(frame, (int(center[0]), int(center[1])), 2, (255, 0, 0), 1)
                             self.angle_corner(corners[i], ids[i])
+                            cv2.putText(frame, "Pos: x " + str(center[0]) + " y " + str(center[1]) + ".", (int(center[0]), int(center[1])),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                            if self.center_x != None and self.center_y != None and ids[i] != REFERENCE:
+                                dist_diag = sqrt((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2)
+                                print(dist_diag * 5 / self.pixels_ref, " CM.")
+
                             # Display the resulting frame
                     #self.calibrate_unit(corners, ids)
-                    #self.find_origin(corners, ids)
                     #self.distance_from_origin(corners, ids, frame)
                     #draw_aruco(corners, ids, frame)
                     # loop over the detected ArUCo corners
@@ -177,10 +184,16 @@ class ArucoVideo:
                 center = (corners[id][0][0] + corners[id][0][2]) / 2
                 self.center_x = center[0]
                 self.center_y = center[1]
+                d_x = corners[id][0][0][0] - corners[id][0][1][0]
+                d_y = corners[id][0][0][1] - corners[id][0][1][1]
+                self.pixels_ref = sqrt(d_x ** 2 + d_y ** 2)
+                print(self.pixels_ref / 5, " for 1cm. ref")
+                
         # if REFERENCE is not in the list, then the origin is None
         if REFERENCE not in ids:
             self.center_y = None
             self.center_x = None
+            self.pixels_ref = None
 
     def distance_from_origin(self, corners, ids, frame):
         """
