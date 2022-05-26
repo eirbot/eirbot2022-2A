@@ -59,7 +59,7 @@ if __name__ == "__main__":
     #     rob.arm.inverted_nazi(False)
 
 
-# Strat v1
+# Strat v1 :  dégager la statuette + revenir
     # rob.move(210, 0)
     # rob.go_angle(90)
     # rob.move(940)
@@ -69,5 +69,20 @@ if __name__ == "__main__":
     # rob.move(-940)
     # rob.go_angle(90)
     # rob.move(210)
+
+
+# Strat v2 : dégager la statuette + revenir avec palets
+    # rob.move(210, 0)
+    # rob.go_angle(90)
+    # rob.move(940)
+    # rob.arm.inverted_nazi(True)
+    # rob.go_angle(360)
+    # rob.arm.inverted_nazi(False)
+    # rob.go_angle(95)
+    # rob.move(-1080)
+    # rob.go_angle(95)
+    # rob.move(-1080)
+    # rob.go_angle(33)
+    # rob.move(1650)
 
 
