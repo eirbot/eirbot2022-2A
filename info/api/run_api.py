@@ -3,6 +3,7 @@
 This file is the entry point of flask api. Launch python3 ronoco_vm/run.py to run flask server
 """
 import os
+from aruco_api import ArucoVideo
 
 from flask import Flask
 from flask_cors import CORS
@@ -64,6 +65,8 @@ class RunAPI:
         self.app.register_blueprint(Common().bp)
         #from video import Video
         #self.app.register_blueprint(Video().bp)
+        from aruco_api import ArucoVideo
+        self.app.register_blueprint(ArucoVideo().bp)
         from api import API
         self.app.register_blueprint(API().bp)
         CORS(self.app)
