@@ -6,7 +6,7 @@ import imutils
 import math
 
 import numpy as np
-from cv2 import VideoCapture
+from cv2 import VideoCapture, aruco
 from flask import Blueprint, request
 
 REFERENCE = 42
@@ -78,14 +78,13 @@ class API:
             else:
                 self.cap = VideoCapture(self.device_id)
                 success, frame = self.cap.read()
-                h, w = frame.shape[:2]
                 map1, map2 = cv2.fisheye.initUndistortRectifyMap(self.K, self.D, np.eye(3), self.K, self.DIM,
                                                                  cv2.CV_16SC2)
                 frame = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
                 if not success:
                     self.cap.release()
                     return {'status': 'error', 'message': 'Marker not found'}, 404
-                corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(frame, self.aruco_dict,
+                _, ids, _ = cv2.aruco.detectMarkers(frame, self.aruco_dict,
                                                                           parameters=self.parameters)
                 if ids is None:
                     self.cap.release()
@@ -93,9 +92,15 @@ class API:
 
                 json_list = []
                 for i in range(len(ids)):
-                    json_list.append({'id': str(ids[i][0]), 'corners': corners[i][0].tolist()})
+                    json_list.append(str(ids[i][0]))
                 self.cap.release()
-                return {'status': 'success', 'message': json_list}, 200
+                return {'status': 'success', 'message': {'ids': json_list}}, 200
+
+    def angle_corner(self, corner):
+        d_x = corner[0][0][0] - corner[0][1][0]
+        d_y = corner[0][0][1] - corner[0][1][1]
+        angle = np.arctan2(d_y, d_x) * 180 / 3.14
+        return angle
 
     def find_by_id(self, id):
         """
@@ -112,24 +117,25 @@ class API:
             else:
                 self.cap = VideoCapture(self.device_id)
                 success, frame = self.cap.read()
-                h, w = frame.shape[:2]
-                map1, map2 = cv2.fisheye.initUndistortRectifyMap(self.K, self.D, np.eye(3), self.K, self.DIM,
-                                                                 cv2.CV_16SC2)
-                frame = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                self.cap.release()
                 if not success:
-                    self.cap.release()
-                    return {'status': 'error', 'message': 'Video not initialized'}, 404
-                (corners, ids, rejected) = cv2.aruco.detectMarkers(frame,
+                    return {'status': 'error', 'message': 'Video not initialized'}, 500
+
+                frame = imutils.resize(frame, width=1000)
+                (corners, ids, _) = cv2.aruco.detectMarkers(frame,
                                                                    self.aruco_dict,
                                                                    parameters=self.parameters)
-                for i in range(len(ids)):
-                    if ids[i][0] == int(id):
-                        json_list = {'id': str(ids[i][0]), 'corners': corners[i][0].tolist()}
-                        self.cap.release()
-                        return {'status': 'success', 'message': json_list}, 200
-                else:
-                    self.cap.release()
-                    return {'status': 'error', 'message': 'Marker not found'}, 404
+                # verify *at least* one ArUco marker was detected
+                if ids != None or len(ids) <= 0:
+                    return {'status': 'error', 'message': 'No marker detected'}, 404
+                
+                ids = ids.flatten()
+                if np.all(ids is not None):  # If there are markers found by detector
+                    for pos, i in np.ndenumerate(ids):  # Iterate in markers
+                        if i == int(id):
+                            json_list = {'id': str(id), 'angle': str(self.angle_corner(corners[pos[0]]))}
+                            return {'status': 'success', 'message': json_list}, 200
+                return {'status': 'error', 'message': 'Marker not found'}, 404
 
     def position(self):
         """
@@ -179,7 +185,7 @@ class API:
 
     def find_origin(self, corners, ids):
         """
-        Trouve le marker de référence
+        Trouve l'origine
         """
         for id in range(len(ids)):
             if ids[id] == REFERENCE:
