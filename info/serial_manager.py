@@ -9,7 +9,17 @@ import flags
 
 class SerialManager():
     def __init__(self, port="/dev/ttyACM0", baudrate=115200):
-        self.ser = serial.Serial(port, baudrate)
+        port = "/dev/ttyACM"
+        self.ser = None
+        for i in range(0, 10):
+            try:
+                self.ser = serial.Serial(port + str(i), baudrate)
+                break
+            except serial.serialutil.SerialException:
+                pass
+        if self.ser is None:
+            raise serial.serialutil.SerialException
+
         self.type: dict[str, bin] = {"int_16": 0,
                                      "int_32": 1}
 
@@ -40,7 +50,7 @@ class SerialManager():
 
             cmd = [header] + data
             logging.info("Writing to serial: {}".format(cmd))
-            logging.error("Writing to serial: {}".format(op+int_type+len(param_array)))
+            logging.error("Writing to serial: {}".format(op + int_type + len(param_array)))
 
             self.ser.write(cmd)
             time.sleep(1)
