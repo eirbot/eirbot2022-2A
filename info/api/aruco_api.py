@@ -98,10 +98,10 @@ class ArucoVideo:
         self.camera = device
         return render_template('index.html', devices=self.camera_list, device_id=self.camera)
 
-    def angle_corner(corner, id):
+    def angle_corner(self, corner, id):
         d_x = corner[0][0][0] - corner[0][1][0]
         d_y = corner[0][0][1] - corner[0][1][1]
-        angle = np.arctan2(d_y/d_x)
+        angle = np.arctan2(d_y, d_x) * 180 / 3.14
         print(id, angle)
         return angle
 
@@ -142,7 +142,7 @@ class ArucoVideo:
                             #aruco.drawAxis(frame, self.K, self.D, rvec, tvec, 0.01)  # Draw Axis
                             center = (corners[i][0][0] + corners[i][0][2]) / 2
                             cv2.circle(frame, (int(center[0]), int(center[1])), 2, (255, 0, 0), 1)
-                            angle_corner(corners[i], ids[i])
+                            self.angle_corner(corners[i], ids[i])
                             # Display the resulting frame
                     #self.calibrate_unit(corners, ids)
                     #self.find_origin(corners, ids)
