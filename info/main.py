@@ -122,3 +122,51 @@ if __name__ == "__main__":
     # rob.move(1650)
 
 
+# Strat v3 : dégager la statuette + revenir avec palets 
+# JAUNE
+    rob.move(350)
+    rob.go_angle(90)
+    rob.move(800)
+    rob.go_angle(45)
+    rob.move(200)
+
+    ## Action avec la statuette
+
+    #positon_bras_statuette
+    #rob.suc(True)
+    #position_bras_haute
+
+    ## OU
+
+    rob.arm.inverted_nazi(True)
+    rob.go_angle(360)
+    rob.arm.inverted_nazi(False)
+
+    ## Fin action avec la statuette
+
+    rob.move(-50)
+
+    # Si replique
+    #rob.go_angle(-90)
+    #activer_bras_replique
+    #rob.go_angle(-145)
+
+    # Sinon
+    #rob.go_angle(-235)
+
+
+    rob.move(-1375)
+    rob.go_angle(10)
+
+    #déposer statuette
+
+    rob.move(-550)
+
+    #BONUS DE L'AMBIANCE
+
+    rob.move(-300)
+    rob.inverted_nazi(True)
+    rob.go_angle(-360)
+    rob.move(300)
+
+
