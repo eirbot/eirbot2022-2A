@@ -7,6 +7,7 @@ import cv2
 import imutils as imutils
 import numpy as np
 from flask import render_template, Blueprint, request, Response
+from cv2 import aruco
 
 REFERENCE = 42
 
@@ -39,7 +40,7 @@ def draw_aruco(corners, ids, frame):
                     0.5, (0, 255, 0), 2)
 
 
-class Video:
+class ArucoVideo:
     """
     Class for the video blueprint
     """
@@ -105,24 +106,41 @@ class Video:
         while True:
             success, frame = self.cap.read()
             h, w = frame.shape[:2]
-            #map1, map2 = cv2.fisheye.initUndistortRectifyMap(self.K, self.D, np.eye(3), self.K, self.DIM, cv2.CV_16SC2)
-            #frame = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            map1, map2 = cv2.fisheye.initUndistortRectifyMap(self.K, self.D, np.eye(3), self.K, self.DIM, cv2.CV_16SC2)
+            frame = cv2.remap(frame, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
             if not success:
                 break
             else:
                 frame = imutils.resize(frame, width=1000)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                gray = cv2.addWeighted(gray, 1, gray, 0, 0)
+                kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+                gray = cv2.filter2D(gray, -1, kernel)
 
-                (corners, ids, rejected) = cv2.aruco.detectMarkers(frame,
+                (corners, ids, rejected) = cv2.aruco.detectMarkers(gray,
                                                                    self.aruco_dict,
                                                                    parameters=self.parameters)
+                aruco.drawDetectedMarkers(frame, corners)  # Draw A square around the markers
 
                 # verify *at least* one ArUco marker was detected
                 if len(corners) > 0:
-                    self.calibrate_unit(corners, ids)
-                    self.find_origin(corners, ids)
-                    self.distance_from_origin(corners, ids, frame)
                     ids = ids.flatten()
-                    draw_aruco(corners, ids, frame)
+                    if np.all(ids is not None):  # If there are markers found by detector
+                        for i in range(0, len(ids)):  # Iterate in markers
+                            # Estimate pose of each marker and return the values rvec and tvec---different from camera coefficients
+                            rvec, tvec, markerPoints = aruco.estimatePoseSingleMarkers(corners[i], 0.02, self.K,
+                                                                           self.D)
+                            print("id: ", ids[i], " rvec: ", rvec, " tvec: ", tvec)
+                            (rvec - tvec).any()  # get rid of that nasty numpy value array error
+                            #aruco.drawAxis(frame, self.K, self.D, rvec, tvec, 0.01)  # Draw Axis
+                            center = (corners[i][0][0] + corners[i][0][2]) / 2
+                            cv2.circle(frame, (int(center[0]), int(center[1])), 2, (255, 0, 0), 1)
+
+                            # Display the resulting frame
+                    #self.calibrate_unit(corners, ids)
+                    #self.find_origin(corners, ids)
+                    #self.distance_from_origin(corners, ids, frame)
+                    #draw_aruco(corners, ids, frame)
                     # loop over the detected ArUCo corners
                 ret, buffer = cv2.imencode('.jpg', frame)
                 frame = buffer.tobytes()
