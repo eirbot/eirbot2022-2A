@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import logging
+import math
 import multiprocessing
 import time
 
@@ -7,7 +8,6 @@ import requests
 from RPi import GPIO
 
 import arm_manager
-import camera_manager
 import flags
 import gpio_manager
 import serial_manager
@@ -61,12 +61,11 @@ class RobotManager:
         
 
         logging.getLogger().setLevel(log_level)
-        multiprocessing.Process(target=self.__end_of_world).start()
 
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.RISING,
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.FALLING,
                               callback=self.__gp2_forward_callback,
                               bouncetime=100)
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.RISING,
+        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.FALLING,
                               callback=self.__gp2_backward_callback,
                               bouncetime=100)
         GPIO.add_event_detect(self.gpio.GPIO["limit_switch_forward"]["pin"], GPIO.RISING,
@@ -80,14 +79,14 @@ class RobotManager:
         logging.error("GP2 backward callback rise")
         self.stop()
         flags.BLOCKED = True
-        time.sleep(1)
+        time.sleep(5)
         flags.BLOCKED = False
 
     def __gp2_backward_callback(self, channel):
         logging.error("GP2 forward callback rise")
         self.stop()
         flags.BLOCKED = True
-        time.sleep(1)
+        time.sleep(5)
         flags.BLOCKED = False
 
     def __limit_switch_forward_callback(self, channel):
@@ -217,7 +216,7 @@ class RobotManager:
                 return True
             elif output == self.return_codes["RROOUT"]:
                 return False
-        
+
         self.move_angle(theta)
 
     def reset(self):
@@ -291,18 +290,24 @@ class RobotManager:
         return position
 
     def wait_until_start(self):
+        self.arm.inverted_nazi(True)
+        time.sleep(2)
+        self.arm.inverted_nazi(False)
+        time.sleep(3)
         while GPIO.input(self.gpio.GPIO["start"]["pin"]) != 0:
             # logging.debug("Waiting for start" + str(GPIO.input(self.gpio.GPIO["start"]["pin"])))
             time.sleep(0.1)
         logging.error("Started")
+        multiprocessing.Process(target=self.__end_of_world).start()
         return True
         # while True:
-        #     logging.error("Switch forward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_forward"]["pin"])))
-        #     logging.error("Switch backward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_backward"]["pin"])))
-        #     logging.error("GP2 forward: {}".format(GPIO.input(self.gpio.GPIO["gp2_forward"]["pin"])))
-        #     logging.error("GP2 backward: {}".format(GPIO.input(self.gpio.GPIO["gp2_backward"]["pin"])))
-        #     time.sleep(0.5)
-
+        #     # logging.error("Switch forward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_forward"]["pin"])))
+        #     # logging.error("Switch backward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_backward"]["pin"])))
+        #     # logging.error("Start: {}".format(GPIO.input(self.gpio.GPIO["start"]["pin"])))
+        #     # logging.error("Side: {}".format(GPIO.input(self.gpio.GPIO["side"]["pin"])))
+        #     logging.error("gp2_forward: {}".format(GPIO.input(self.gpio.GPIO["gp2_forward"]["pin"])))
+        #     logging.error("gp2_backward: {}".format(GPIO.input(self.gpio.GPIO["gp2_backward"]["pin"])))
+        #     time.sleep(0.2)
 
     def go_until_wall(self):
         self.go_speed()
