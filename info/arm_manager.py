@@ -6,8 +6,7 @@ from RPi import GPIO
 
 class ArmManager:
     def __init__(self, simulation: bool):
-        self.gpio: list[int, int, int, int] = [4, 17, 27, 22]
-        self.position: dict = {"nazi_inverted": 4}
+        self.gpio: list[int, int, int, int] = [10, 17, 27, 6]
         self.simulation: bool = simulation
         self.initialize_gpio()
 
@@ -19,11 +18,26 @@ class ArmManager:
         for element in range(len(self.gpio)):
             GPIO.setup(self.gpio[element], GPIO.OUT)
             time.sleep(0.1)
+            # GPIO.output(self.gpio[element], GPIO.LOW)
 
-    def inverted_nazi(self, activation: bool):
+    def base_position(self):
+        GPIO.output(10, GPIO.LOW)
+        GPIO.output(17, GPIO.LOW)
+        time.sleep(4)
+
+    def inverted_nazi(self):
+        GPIO.output(10, GPIO.HIGH)
+        GPIO.output(27, GPIO.HIGH)
+        GPIO.output(17, GPIO.LOW)
+        time.sleep(4)
+
+    def piedestal(self):
+        GPIO.output(10, GPIO.LOW)
+        GPIO.output(17, GPIO.HIGH)
+        time.sleep(4)
+
+    def suc(self, activation: bool):
         if activation:
-            GPIO.output(4, GPIO.HIGH)
-            time.sleep(3)
+            GPIO.output(22, GPIO.HIGH)
         elif not activation:
-            GPIO.output(4, GPIO.LOW)
-            time.sleep(3)
+            GPIO.output(22, GPIO.LOW)

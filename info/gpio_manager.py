@@ -3,6 +3,8 @@ import time
 
 from RPi import GPIO
 
+import flags
+
 
 class GpioManager:
     def __init__(self, simulation):
@@ -16,13 +18,14 @@ class GpioManager:
                                                       "display": {"pin": 6, "direction": OUT},
                                                       "limit_switch_forward": {"pin": 13, "direction": IN},
                                                       "limit_switch_backward": {"pin": 26, "direction": IN},
-                                                      "side": {"pin": 18, "direction": IN},
-                                                      "start": {"pin": 23, "direction": IN},
+                                                      "start": {"pin": 18, "direction": IN},
+                                                      "side": {"pin": 23, "direction": IN},
                                                       "gp2_forward": {"pin": 24, "direction": IN},
                                                       "gp2_backward": {"pin": 25, "direction": IN},
                                                       "showcase": {"pin": 12, "direction": OUT},
                                                       "red_led": {"pin": 16, "direction": OUT},
-                                                      "reset": {"pin": 19, "direction": OUT}, }
+                                                      "reset": {"pin": 19, "direction": OUT},
+                                                      "replique": {"pin": 20, "direction": OUT}}
 
     def initialize_gpio(self):
         if self.simulation:
@@ -35,3 +38,4 @@ class GpioManager:
                                                                                                 "direction"]))
             GPIO.setup(self.GPIO[key]["pin"], self.GPIO[key]["direction"])
             time.sleep(0.1)
+        flags.SIDE = "PURPLE" if GPIO.input(self.GPIO["side"]["pin"]) else "YELLOW"

@@ -15,22 +15,21 @@ import serial_manager
 
 class RobotManager:
     def __init__(self, simulation: bool = False, baudrate: int = 115200, port: str = "/dev/ttyACM0",
-                 log_level: int = logging.INFO, camera_url: str = "http://0.0.0.0"):
+                 log_level: int = logging.INFO, camera_url: str = "http://0.0.0.0", sensors: bool = True):
         self.simulation: bool = simulation
 
         self.camera_url: str = camera_url
+        GPIO.cleanup()
 
         self.arm: arm_manager.ArmManager = arm_manager.ArmManager(simulation=self.simulation)
         self.gpio: gpio_manager.GpioManager = gpio_manager.GpioManager(simulation=self.simulation)
         self.serial: serial_manager.SerialManager = serial_manager.SerialManager(baudrate=baudrate, port=port)
         # self.camera: camera_manager.CameraManager = camera_manager.CameraManager(camera_url=self.camera_url)
-
         if not self.simulation:
             self.gpio.initialize_gpio()
 
         self.start: bool = False
-        self.side: str = "YELLOW"
-        flags.SIDE = self.side
+        self.side: str = flags.SIDE
 
         self.operation: dict[str, bin] = {"SPO": 1,
                                           "RESET": 2,
@@ -47,33 +46,33 @@ class RobotManager:
 
         self._length: int = 3000
         self._width: int = 2000
-        self._robot_width:int = 150
-        
-        if self.side == "YELLOW" :
+        self._robot_width: int = 150
+
+        if self.side == "YELLOW":
             self._x: int = 700
             self._y: int = 150
             self._theta: int = 0
-        else :
+        else:
             self._x: int = 700
             self._y: int = 2850
             self._theta: int = 0
-        
-        
 
         logging.getLogger().setLevel(log_level)
-
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.FALLING,
-                              callback=self.__gp2_forward_callback,
-                              bouncetime=100)
-        GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.FALLING,
-                              callback=self.__gp2_backward_callback,
-                              bouncetime=100)
+        if sensors:
+            GPIO.add_event_detect(self.gpio.GPIO["gp2_forward"]["pin"], GPIO.FALLING,
+                                  callback=self.__gp2_forward_callback,
+                                  bouncetime=100)
+            GPIO.add_event_detect(self.gpio.GPIO["gp2_backward"]["pin"], GPIO.FALLING,
+                                  callback=self.__gp2_backward_callback,
+                                  bouncetime=100)
         GPIO.add_event_detect(self.gpio.GPIO["limit_switch_forward"]["pin"], GPIO.RISING,
                               callback=self.__limit_switch_forward_callback,
                               bouncetime=100)
         GPIO.add_event_detect(self.gpio.GPIO["limit_switch_backward"]["pin"], GPIO.FALLING,
                               callback=self.__limit_switch_backward_callback,
                               bouncetime=100)
+
+
 
     def __gp2_forward_callback(self, channel):
         logging.error("GP2 backward callback rise")
@@ -95,24 +94,24 @@ class RobotManager:
         flags.BLOCKED = True
         time.sleep(1)
 
-        if self.side == "YELLOW" :
+        if self.side == "YELLOW":
             if self._theta <= 45 and self._theta >= -45:
                 self._y = self._length - self._robot_width
             elif self._theta > 45 and self._theta <= 135:
                 self._x = self._width - self._robot_width
             elif self._theta < -45 and self._theta >= -135:
                 self._x = self._robot_width
-            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180) :
+            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180):
                 self._y = self._robot_width
-    
-        else :
+
+        else:
             if self._theta <= 45 and self._theta >= -45:
                 self._y = self._robot_width
             elif self._theta > 45 and self._theta <= 135:
                 self._x = self._robot_width
             elif self._theta < -45 and self._theta >= -135:
                 self._x = self._width - self._robot_width
-            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180) :
+            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180):
                 self._y = self._length - self._robot_width
 
         flags.BLOCKED = False
@@ -123,24 +122,24 @@ class RobotManager:
         flags.BLOCKED = True
         time.sleep(1)
 
-        if self.side != "YELLOW" :
+        if self.side != "YELLOW":
             if self._theta <= 45 and self._theta >= -45:
                 self._y = self._length - self._robot_width
             elif self._theta > 45 and self._theta <= 135:
                 self._x = self._width - self._robot_width
             elif self._theta < -45 and self._theta >= -135:
                 self._x = self._robot_width
-            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180) :
+            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180):
                 self._y = self._robot_width
-        
-        else :
+
+        else:
             if self._theta <= 45 and self._theta >= -45:
                 self._y = self._robot_width
             elif self._theta > 45 and self._theta <= 135:
                 self._x = self._robot_width
             elif self._theta < -45 and self._theta >= -135:
                 self._x = self._width - self._robot_width
-            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180) :
+            elif (self._theta < -135 and self._theta >= -180) or (self._theta > 135 and self._theta <= 180):
                 self._y = self._length - self._robot_width
 
         flags.BLOCKED = False
@@ -197,8 +196,8 @@ class RobotManager:
 
     def go_angle(self, theta):
 
-        if self.side != "YELLOW" :
-        theta = - theta
+        if self.side != "YELLOW":
+            theta = - theta
 
         if self.simulation:
             logging.debug("Going to angle: {}".format(theta))
@@ -270,11 +269,6 @@ class RobotManager:
             logging.debug("Bulldozer: {}".format(move))
             return True
 
-    def suc(self, state: bool = True):
-        if self.simulation:
-            logging.debug("Suc: {}".format(state))
-            return True
-
     def showcase(self):
         multiprocessing.Process(target=self.__showcase_thread).start()
         # GPIO.output(12, GPIO.HIGH)
@@ -290,23 +284,21 @@ class RobotManager:
         return position
 
     def wait_until_start(self):
-        self.arm.inverted_nazi(True)
-        time.sleep(2)
-        self.arm.inverted_nazi(False)
-        time.sleep(3)
+        self.arm.inverted_nazi()
+        self.arm.base_position()
         while GPIO.input(self.gpio.GPIO["start"]["pin"]) != 0:
-            # logging.debug("Waiting for start" + str(GPIO.input(self.gpio.GPIO["start"]["pin"])))
             time.sleep(0.1)
         logging.error("Started")
+        logging.error(self.side)
         multiprocessing.Process(target=self.__end_of_world).start()
         return True
         # while True:
         #     # logging.error("Switch forward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_forward"]["pin"])))
         #     # logging.error("Switch backward: {}".format(GPIO.input(self.gpio.GPIO["limit_switch_backward"]["pin"])))
-        #     # logging.error("Start: {}".format(GPIO.input(self.gpio.GPIO["start"]["pin"])))
-        #     # logging.error("Side: {}".format(GPIO.input(self.gpio.GPIO["side"]["pin"])))
-        #     logging.error("gp2_forward: {}".format(GPIO.input(self.gpio.GPIO["gp2_forward"]["pin"])))
-        #     logging.error("gp2_backward: {}".format(GPIO.input(self.gpio.GPIO["gp2_backward"]["pin"])))
+        #     logging.error("Start: {}".format(GPIO.input(self.gpio.GPIO["start"]["pin"])))
+        #     logging.error("Side: {}".format(GPIO.input(self.gpio.GPIO["side"]["pin"])))
+        #     # logging.error("gp2_forward: {}".format(GPIO.input(self.gpio.GPIO["gp2_forward"]["pin"])))
+        #     # logging.error("gp2_backward: {}".format(GPIO.input(self.gpio.GPIO["gp2_backward"]["pin"])))
         #     time.sleep(0.2)
 
     def go_until_wall(self):
@@ -315,19 +307,46 @@ class RobotManager:
             time.sleep(0.1)
         self.stop()
 
-
-    def move_position(distance):
+    def move_position(self, distance):
         x = distance * math.sin(math.radians(self._theta))
         y = distance * math.cos(math.radians(self._theta))
 
-        if self.side != "YELLOW" :
+        if self.side != "YELLOW":
             y = - y
             x = - x
-        
+
         self._y += y
         self._x += x
 
-    def move_angle(angle):
+    def replique(self, activation):
+        if activation:
+            ajoutAngle = 5
+            pwm = GPIO.PWM(self.gpio.GPIO["replique"]["pin"], 50)
+            pwm.start(5)
+            angle1 = 0
+            duty1 = float(angle1) / 10 + ajoutAngle
+            angle2 = 50
+            duty2 = float(angle2) / 10 + ajoutAngle
+            pwm.ChangeDutyCycle(duty1)
+            time.sleep(0.8)
+            pwm.ChangeDutyCycle(duty2)
+            time.sleep(0.8)
+            GPIO.cleanup()
+        elif activation:
+            ajoutAngle = 5
+            pwm = GPIO.PWM(self.gpio.GPIO["replique"]["pin"], 50)
+            pwm.start(5)
+            angle1 = 50
+            duty1 = float(angle1) / 10 + ajoutAngle
+            angle2 = 0
+            duty2 = float(angle2) / 10 + ajoutAngle
+            pwm.ChangeDutyCycle(duty1)
+            time.sleep(0.8)
+            pwm.ChangeDutyCycle(duty2)
+            time.sleep(0.8)
+            GPIO.cleanup()
+
+    def move_angle(self, angle):
         # _theta += angle
         # _theta = _theta % 360
 
@@ -338,7 +357,6 @@ class RobotManager:
         elif self._theta > 360:
             self._theta = self._theta % 360
         if self._theta > 180:
-           self._theta = self._theta - 360
+            self._theta = self._theta - 360
         elif self._theta < -180:
             self._theta = 360 + self._theta
-
