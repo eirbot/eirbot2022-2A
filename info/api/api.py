@@ -28,6 +28,7 @@ class API:
         self.center_x = None
         self.center_y = None
         self.aruco_size = 5.0
+        self.aruco_size_ref = 10.0
         self.ratio = None
         self.pixels_ref = None
 
@@ -141,11 +142,11 @@ class API:
                             json_list = {'id': str(id), 'angle': str(angle)}
                             if self.center_x != None and self.center_y != None and ids[pos[0]] != REFERENCE:
                                 hauteur = 1.5 if ids[pos[0]] >= 11 and ids[pos[0]] <= 50 else 43.
-                                dist_diag = (1 - hauteur / 100) *  sqrt((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2) * 5 / self.pixels_ref
-                                dist_y = (1 - hauteur / 100) *  (center[0] - self.center_x) * 5 / self.pixels_ref
+                                dist_diag = (1 - hauteur / 100) *  sqrt((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2) * self.aruco_size_ref / self.pixels_ref
+                                dist_y = (1 - hauteur / 100) *  (center[0] - self.center_x) * self.aruco_size_ref / self.pixels_ref
                                 dist_y *= -1
-                                dist_x = (1 - hauteur / 100) *  (center[1] - self.center_y) * 5 / self.pixels_ref
-                                json_list = {'id': str(id), 'angle': str(angle), 'x': str(dist_x), 'y': str(dist_y)}
+                                dist_x = (1 - hauteur / 100) *  (center[1] - self.center_y) * self.aruco_size_ref / self.pixels_ref
+                                json_list = {'id': str(id), 'angle': str(angle), 'x': str(dist_x + 150), 'y': str(dist_y + 125)}
                             return {'status': 'success', 'message': json_list}, 200
                 return {'status': 'error', 'message': 'Marker not found'}, 404
 
@@ -207,7 +208,7 @@ class API:
                  d_x = corners[id][0][0][0] - corners[id][0][1][0]
                  d_y = corners[id][0][0][1] - corners[id][0][1][1]
                  self.pixels_ref = sqrt(d_x ** 2 + d_y ** 2)
-                 print(self.pixels_ref / self.aruco_size, " for 1cm. ref")
+                 print(self.pixels_ref / self.aruco_size_ref, " for 1cm. ref")
                  
          # if REFERENCE is not in the list, then the origin is None
          if REFERENCE not in ids:
