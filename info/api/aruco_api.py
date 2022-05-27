@@ -120,10 +120,16 @@ class ArucoVideo:
                 break
             else:
                 frame = imutils.resize(frame, width=1000)
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                gray = cv2.addWeighted(gray, 1, gray, 0, 0)
-                kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-                gray = cv2.filter2D(gray, -1, kernel)
+                kernel = np.array([[0, -1, 0],
+                   [-1, 5,-1],
+                   [0, -1, 0]])
+                #frame = cv2.filter2D(src=frame, ddepth=-1, kernel=kernel)
+                #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                #gray = (gray-gray.min())/(gray.max()-gray.min())
+                #gray = cv2.addWeighted(gray, 1, gray, 0, 0)
+                #frame = gray
+                #kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+                #gray = cv2.filter2D(gray, -1, kernel)
 
                 (corners, ids, rejected) = cv2.aruco.detectMarkers(frame,
                                                                    self.aruco_dict,
@@ -139,7 +145,6 @@ class ArucoVideo:
                             # Estimate pose of each marker and return the values rvec and tvec---different from camera coefficients
                             rvec, tvec, markerPoints = aruco.estimatePoseSingleMarkers(corners[i], 0.02, self.K,
                                                                            self.D)
-                            print("id: ", ids[i], " rvec: ", rvec, " tvec: ", tvec)
                             (rvec - tvec).any()  # get rid of that nasty numpy value array error
                             #aruco.drawAxis(frame, self.K, self.D, rvec, tvec, 0.01)  # Draw Axis
                             center = (corners[i][0][0] + corners[i][0][2]) / 2
@@ -148,8 +153,11 @@ class ArucoVideo:
                             cv2.putText(frame, "Pos: x " + str(center[0]) + " y " + str(center[1]) + ".", (int(center[0]), int(center[1])),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                             if self.center_x != None and self.center_y != None and ids[i] != REFERENCE:
-                                dist_diag = sqrt((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2)
-                                print(dist_diag * 5 / self.pixels_ref, " CM.")
+                                hauteur = 1.5 if ids[i] >= 11 and ids[i] <= 50 else 43.
+                                dist_diag = (1 - hauteur / 100) *  sqrt((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2) * 5 / self.pixels_ref
+                                dist_x = (1 - hauteur / 100) *  (center[0] - self.center_x) * 5 / self.pixels_ref
+                                dist_y = (1 - hauteur / 100) *  (center[1] - self.center_y) * 5 / self.pixels_ref
+                                print(ids[i], dist_diag, " CM.", dist_x, "x", dist_y, "y")
 
                             # Display the resulting frame
                     #self.calibrate_unit(corners, ids)
@@ -202,7 +210,6 @@ class ArucoVideo:
         for id in range(len(ids)):
             rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[id], 0.05, self.K, self.D)
             cv2.aruco.drawAxis(frame, self.K, self.D, rvec, tvec, 0.03)
-            print("ID: ", id, " rvec: ", rvec, " tvec: ", tvec)
             if ids[id] != REFERENCE:
                 try:
                     center = (corners[id][0][0] + corners[id][0][2]) / 2
