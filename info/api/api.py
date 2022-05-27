@@ -4,6 +4,7 @@ API using flask without frontend
 import cv2
 import imutils
 import math
+from math import sqrt
 
 import numpy as np
 from cv2 import VideoCapture, aruco
@@ -27,7 +28,9 @@ class API:
         self.center_x = None
         self.center_y = None
         self.aruco_size = 5.0
+        self.aruco_size_ref = 10.0
         self.ratio = None
+        self.pixels_ref = None
 
         self.bp.route('/initialize', methods=['POST'])(self.initialize)
         self.bp.route('/find', methods=['GET'])(self.find)
@@ -126,14 +129,24 @@ class API:
                                                                    self.aruco_dict,
                                                                    parameters=self.parameters)
                 # verify *at least* one ArUco marker was detected
-                if ids != None or len(ids) <= 0:
+                if len(corners) == 0:
                     return {'status': 'error', 'message': 'No marker detected'}, 404
                 
                 ids = ids.flatten()
+                self.find_origin(corners, ids)
                 if np.all(ids is not None):  # If there are markers found by detector
                     for pos, i in np.ndenumerate(ids):  # Iterate in markers
                         if i == int(id):
-                            json_list = {'id': str(id), 'angle': str(self.angle_corner(corners[pos[0]]))}
+                            center = (corners[pos[0]][0][0] + corners[pos[0]][0][2]) / 2
+                            angle = self.angle_corner(corners[pos[0]])
+                            json_list = {'id': str(id), 'angle': str(angle)}
+                            if self.center_x != None and self.center_y != None and ids[pos[0]] != REFERENCE:
+                                hauteur = 1.5 if ids[pos[0]] >= 11 and ids[pos[0]] <= 50 else 43.
+                                dist_diag = (1 - hauteur / 100) *  sqrt((center[0] - self.center_x) ** 2 + (center[1] - self.center_y) ** 2) * self.aruco_size_ref / self.pixels_ref
+                                dist_y = (1 - hauteur / 100) *  (center[0] - self.center_x) * self.aruco_size_ref / self.pixels_ref
+                                dist_y *= -1
+                                dist_x = (1 - hauteur / 100) *  (center[1] - self.center_y) * self.aruco_size_ref / self.pixels_ref
+                                json_list = {'id': str(id), 'angle': str(angle), 'x': str(dist_x + 150), 'y': str(dist_y + 125)}
                             return {'status': 'success', 'message': json_list}, 200
                 return {'status': 'error', 'message': 'Marker not found'}, 404
 
@@ -184,18 +197,24 @@ class API:
                 return {'status': 'success', 'message': 'Video released'}, 200
 
     def find_origin(self, corners, ids):
-        """
-        Trouve l'origine
-        """
-        for id in range(len(ids)):
-            if ids[id] == REFERENCE:
-                center = (corners[id][0][0] + corners[id][0][2]) / 2
-                self.center_x = center[0]
-                self.center_y = center[1]
-        # if REFERENCE is not in the list, then the origin is None
-        if REFERENCE not in ids:
-            self.center_y = None
-            self.center_x = None
+         """
+         Trouve l'origine
+         """
+         for id in range(len(ids)):
+             if ids[id] == REFERENCE:
+                 center = (corners[id][0][0] + corners[id][0][2]) / 2
+                 self.center_x = center[0]
+                 self.center_y = center[1]
+                 d_x = corners[id][0][0][0] - corners[id][0][1][0]
+                 d_y = corners[id][0][0][1] - corners[id][0][1][1]
+                 self.pixels_ref = sqrt(d_x ** 2 + d_y ** 2)
+                 print(self.pixels_ref / self.aruco_size_ref, " for 1cm. ref")
+                 
+         # if REFERENCE is not in the list, then the origin is None
+         if REFERENCE not in ids:
+             self.center_y = None
+             self.center_x = None
+             self.pixels_ref = None
 
     def distance_from_origin(self, corners, ids):
         """
