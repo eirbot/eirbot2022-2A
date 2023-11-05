@@ -30,5 +30,6 @@ Le protocole de communication entre Raspeberry Pi 3 et Nucléo STM32F4 a été d
 
 # Couche telecom
 
-Le télécom à la comm, Elias.
+Echange des données sans fil entre un pc et la raspberry pi 3.
+Le télécom pour la comm, Elias.
 
