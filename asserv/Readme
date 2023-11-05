@@ -1,4 +1,5 @@
-Asservissement sur Nucléo F446RE
+# Asservissement sur Nucléo F446RE
+Asservissement en vitesse des moteurs, et tentative d'asservissement en position du robot
 
 Entrée : distance (robot) à parcourir, angle (robot) à effectuer
 Sortie : contrôle des deux moteurs MAXON EC45 1:14 via ESC Cargo (développé par Victor), asservis en vitesse
