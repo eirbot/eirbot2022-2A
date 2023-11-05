@@ -1,0 +1,11 @@
+Asservissement sur Nucléo F446RE
+
+Entrée : distance (robot) à parcourir, angle (robot) à effectuer
+Sortie : contrôle des deux moteurs MAXON EC45 1:14 via ESC Cargo (développé par Victor), asservis en vitesse
+
+Bugs à corriger : phase de roue libre moteur lorsque la consigne de vitesse moteur vaut 0.
+
+Type de contrôle moteur : Six Step Commutation
+Language de programmation : C
+Logiciels utilisés : STM32CubeIDE, STM32CubeMonitor, Matlab
+
