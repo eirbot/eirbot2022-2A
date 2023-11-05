@@ -4,13 +4,13 @@ Dépot pour la coupe des deuxièmes années de l'association EIRBOT.
 Thème : Age Of Bots
 Résumé : Préparez-vous à fouiller l’histoire ! En 2022, les robots explorent des sites de fouille archéologique pour y dénicher mille trésors. Il vous appartiendra de les guider à travers cette tâche pour repartir les poches pleines d’or. 
 
-# Equipe : 
-  Victor - Président
-  Vincent - Trésorier
-  Elias - Respo Comm
-  Sebastien - Ancien bureau
-  Coralie - Membre Eirbot
-  Lucas - Ancien bureau
+# Equipe de dev : 
+* Victor - Président
+* Vincent - Trésorier
+* Elias - Respo Comm
+* Sebastien - Ancien bureau
+* Coralie - Membre Eirbot
+* Lucas - Ancien bureau
 
 
 # Base Roulante
